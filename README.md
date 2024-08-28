@@ -7,5 +7,3 @@ Team Members:
 - Gaurav Vermani
 - Ryan 
 - Nick
-
-
