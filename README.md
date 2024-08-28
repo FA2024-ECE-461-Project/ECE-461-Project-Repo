@@ -2,7 +2,7 @@ ECE-461-Project-Repo
 This is a ECE461 Team Project Repository
 
 Project Members:
-Gaurav
+Gaurav Vermani
 
 Jimmy initial commit
 
