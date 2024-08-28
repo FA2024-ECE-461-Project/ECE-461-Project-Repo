@@ -4,7 +4,7 @@
 
 Team Members:
 - Jimmy
-- Gaurav
+- Gaurav Vermani
 - Ryan
 - Nick
 
