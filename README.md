@@ -1,14 +1,11 @@
-ECE-461-Project-Repo
-This is a ECE461 Team Project Repository
+# ECE-461-Project-Repo
 
-Project Members:
-Gaurav Vermani 
+## This is a ECE461 Team Project Repository
 
-Jimmy initial commit
+Team Members:
+- Jimmy
+- Gaurav Vermani
+- Ryan
+- Nick
 
-Gaurav Initial commit
-
-Ryan Initial commit
-
-Nick Ko Initial commit 
 
