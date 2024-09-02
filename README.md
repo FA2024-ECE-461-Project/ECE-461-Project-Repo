@@ -6,4 +6,4 @@ Team Members:
 - Jimmy
 - Gaurav Vermani
 - Ryan 
-- Nick
+- Nick Ko
