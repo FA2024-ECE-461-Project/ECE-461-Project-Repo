@@ -11,7 +11,7 @@ function readUrlFromFile(filePath: string): void {
       process.exit(1);
     }
     const url = data.trim();
-    console.log('URL:', url);
+    console.log(url);
   });
 }
 
