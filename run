@@ -1,2 +1,2 @@
 #!/bin/sh
-npx ts-node run.ts "$@"
+npx ts-node cli.ts "$@"
