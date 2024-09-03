@@ -1,17 +1,19 @@
-// cli.ts
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Function to read a URL from a file and print it
-function readUrlFromFile(filePath: string): void {
+// Function to read URLs from a file and print them as NDJSON
+function readUrlsFromFile(filePath: string): void {
   const absolutePath = path.resolve(filePath);
   fs.readFile(absolutePath, 'utf8', (err, data) => {
     if (err) {
       console.error(`Error reading file: ${err.message}`);
       process.exit(1);
     }
-    const url = data.trim();
-    console.log(url);
+    const urls = data.trim().split('\n');
+    urls.forEach(url => {
+      const jsonOutput = JSON.stringify({ url });
+      console.log(jsonOutput);
+    });
   });
 }
 
@@ -23,4 +25,4 @@ if (args.length !== 1) {
 }
 
 const urlFile = args[0];
-readUrlFromFile(urlFile);
+readUrlsFromFile(urlFile);
