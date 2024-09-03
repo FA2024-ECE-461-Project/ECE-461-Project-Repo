@@ -1,2 +1,7 @@
 #!/bin/sh
-npx ts-node cli.ts "$@"
+if [ "$1" = "test" ]; then
+  shift
+  npm test "$@"
+else
+  npx ts-node src/run.ts "$@"
+fi
