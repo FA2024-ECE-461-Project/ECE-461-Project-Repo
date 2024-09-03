@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Function to read URLs from a file and print them as NDJSON
+// Function to read URLs from a file and print them as NDJSON to stdout
 function readUrlsFromFile(filePath: string): void {
   const absolutePath = path.resolve(filePath);
   fs.readFile(absolutePath, 'utf8', (err, data) => {
@@ -18,10 +18,10 @@ function readUrlsFromFile(filePath: string): void {
 }
 
 // Parse command-line arguments
-const args = process.argv.slice(2);
+const args = process.argv.slice(2); //examine the first command line arg feed into cli.ts (similar to argv[1] in C programming)
 if (args.length !== 1) {
   console.error('Usage: ./run URL_FILE');
-  process.exit(1);
+  process.exit(1);  //end process with error code 1
 }
 
 const urlFile = args[0];
