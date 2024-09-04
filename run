@@ -3,5 +3,5 @@ if [ "$1" = "test" ]; then
   shift
   npm test "$@"
 else
-  npx ts-node cli.ts "$@"
+  npx ts-node src/cli.ts "$@"
 fi
