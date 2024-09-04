@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Running tests...\" && npx ts-node test/test.ts",
+    "test": "echo \"Running tests...\" && jest",
     "cli": "ts-node cli.ts"
   },
   "keywords": [],
