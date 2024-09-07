@@ -1,7 +1,27 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Function to read URLs from a file and print them as NDJSON to stdout
+// Enum for URL types
+enum UrlType {
+  GitHub = 'GitHub',
+  npm = 'npm',
+  Invalid = 'Invalid URL'
+}
+
+// Function to determine if the link is a GitHub, npm, or invalid URL
+function checkUrlType(url: string): UrlType {
+  const githubPattern = /^(https?:\/\/)?(www\.)?github\.com\/[^\/]+\/[^\/]+/;
+  const npmPattern = /^(https?:\/\/)?(www\.)?npmjs\.com\/package\/[^\/]+/;
+
+  if (githubPattern.test(url)) {
+    return UrlType.GitHub;
+  } else if (npmPattern.test(url)) {
+    return UrlType.npm;
+  } else {
+    return UrlType.Invalid;
+  }
+}
+
 // Function to read URLs from a file and print them as NDJSON to stdout
 function readUrlsFromFile(filePath: string): void {
   const absolutePath = path.resolve(filePath);
@@ -12,8 +32,19 @@ function readUrlsFromFile(filePath: string): void {
     }
     const urls = data.trim().split('\n');
     urls.forEach(url => {
-      const jsonOutput = JSON.stringify({ url });
-      console.log(jsonOutput);
+
+      const urlType = checkUrlType(url);
+
+      // Check if the URL is valid, only then calculate metrics etc.
+      if (urlType != UrlType.Invalid) { 
+        // Print the URL as NDJSON
+        const jsonOutput = JSON.stringify({ url });
+        console.log(jsonOutput);
+
+        // Print the type of URL (for testing purposes only)
+        // Remove/Comment this when submitting the final version
+        console.log(urlType);
+      }
     });
   });
 }
