@@ -1,7 +1,7 @@
 // LocalCache is a big hashmap storing the url that has been explored 
 // and the resource obtained
-type CacheItem<T> = {
-  value: T;        //change this to the json rendered from request
+type CacheItem<json> = {
+  value: json;        //change this to the json rendered from request
   expiry: number; // Timestamp indicating when the item should expire
 };
 
