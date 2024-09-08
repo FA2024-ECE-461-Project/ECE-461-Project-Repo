@@ -7,6 +7,7 @@ class API_Caller {
     
     constructor(tokens: [string, string, string, string]) {
         this.GitHubTokens = new TokenBuffer(tokens);
+        this.successfulCall = false;    //default to false before any made calls
     }
     
     makeCallTo(url: string, action: string) {
