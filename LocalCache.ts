@@ -87,3 +87,6 @@ class LocalCache<T> {
     }
   }
 }
+
+//export so other modules could reuse these 2 classes
+export {CacheItem, LocalCache};
