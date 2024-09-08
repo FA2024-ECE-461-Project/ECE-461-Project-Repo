@@ -7,9 +7,9 @@ Team Members:
 - Gaurav Vermani
 - Ryan 
 - Nick Ko
-                 
+
 ## Running Tests
-Jest is the testing framework we choose. Please run the command  
+Jest is the testing framework we choose. Please run the command 
 ```
 npm install
 ```
