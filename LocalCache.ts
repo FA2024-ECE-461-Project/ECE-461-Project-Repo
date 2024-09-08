@@ -1,12 +1,11 @@
-// LocalCache is a big hashmap storing the url that has been explored 
-// and the resource obtained
-type CacheItem<json> = {
-  value: json;        //change this to the json rendered from request
+// LocalCache is a big hashmap with URL(URI) as keys and CacheItem as value
+type CacheItem<T> = {
+  jsonRendered: T;        //this shall be a type that handles json rendered from request
   expiry: number; // Timestamp indicating when the item should expire
 };
 
 class LocalCache<T> {
-  private cache: Map<string, CacheItem<T>>;
+  private cache: Map<string, CacheItem<T>>; //hasmap
   private maxSize: number;
   private timeToLive: number; // Time-to-live in milliseconds
 
@@ -17,9 +16,15 @@ class LocalCache<T> {
   }
 
   // Set an item in the cache with an optional timeToLive override
-  set(key: string, value: T, timeToLiveOverride?: number): void {
+  set(key: string, jsonRendered: T, timeToLiveOverride?: number): void {
     const now = Date.now();
-    const expiry = now + (timeToLiveOverride || this.timeToLive);
+    let expiry = now;
+    if(timeToLiveOverride) {
+      expiry += timeToLiveOverride;
+    }
+    else {
+      expiry += this.timeToLive;
+    }
 
     if (this.cache.size >= this.maxSize) {
       // Evict the oldest item (FIFO)
@@ -27,7 +32,7 @@ class LocalCache<T> {
       this.cache.delete(firstKey);
     }
 
-    this.cache.set(key, { value, expiry });
+    this.cache.set(key, { jsonRendered, expiry });
   }
 
   // Get an item from the cache
@@ -43,7 +48,7 @@ class LocalCache<T> {
       return undefined;
     }
 
-    return cacheItem.value;
+    return cacheItem.jsonRendered;
   }
 
   // Remove an item from the cache
@@ -59,7 +64,9 @@ class LocalCache<T> {
   // Check if an item exists in the cache
   has(key: string): boolean {
     const cacheItem = this.cache.get(key);
-    if (!cacheItem) return false;
+    if (!cacheItem) {
+      return false;
+    }
 
     const now = Date.now();
     if (cacheItem.expiry < now) {
