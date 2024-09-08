@@ -1,4 +1,8 @@
 // LocalCache is a big hashmap with URL(URI) as keys and CacheItem as value
+// This class stores successful API calls to the client side temporarily (caller of this class can specify how long each entry should stay)
+// each entry is stored in the following format
+// {url: {jsonRendered, expire timestamp}}
+
 type CacheItem<T> = {
   jsonRendered: T;        //this shall be a type that handles json rendered from request
   expiry: number; // Timestamp indicating when the item should expire
