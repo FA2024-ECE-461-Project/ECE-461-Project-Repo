@@ -4,7 +4,9 @@
 
 import { checkUrlType, UrlType } from './utils/urlUtils';
 import { readUrlsFromFile } from './utils/fileUtils';
-import { printRepoInfo } from './metrics/correctness';
+import { correctnessMetric } from './metrics/correctness';
+import { getGitHubRepoFromNpmUrl } from './apiProcess/npmApiProcess';
+import { convertSshToHttps } from './utils/urlUtils';
 
 // Parse command-line arguments
 const args = process.argv.slice(2); // Examine the first command line arg feed into cli.ts (similar to argv[1] in C programming)
@@ -27,8 +29,15 @@ export async function cli() {
       // Check if the URL is valid, only then calculate metrics etc.
       if (urlType != UrlType.Invalid) {
         //get number of star in a repo
-        const [owner, repo] = url.split('/').slice(-2);
-        printRepoInfo(owner, repo);
+        if(urlType == 'GitHub'){
+          const [owner, repo] = url.split('/').slice(-2);
+          //correctnessMetric(owner, repo);
+        } else if (urlType == 'npm'){
+          const packageName = url.split('/').slice(-1)[0];
+          // const githubUrlFromNpm = await getGitHubRepoFromNpmUrl(packageName);
+          // const githubHttp =  convertSshToHttps(githubUrlFromNpm);
+        }
+
       }
     });
 

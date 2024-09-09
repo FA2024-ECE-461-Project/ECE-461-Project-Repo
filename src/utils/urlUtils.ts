@@ -20,3 +20,17 @@ export function checkUrlType(url: string): UrlType {
     return UrlType.Invalid;
   }
 }
+
+export function convertSshToHttps(sshUrl: string): string | null {
+  // Regular expression to match SSH GitHub URLs
+  const sshRegex = /^ssh:\/\/git@github\.com\/([^\/]+)\/([^\/]+)(?:\.git)?$/;
+  const match = sshUrl.match(sshRegex);
+
+  if (!match) {
+    // If the URL is not an SSH URL, return it as is
+    return sshUrl;
+  }
+
+  const [_, owner, repo] = match;
+  return `https://github.com/${owner}/${repo}`;
+}

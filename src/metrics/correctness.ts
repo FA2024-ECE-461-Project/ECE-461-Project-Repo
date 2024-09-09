@@ -1,10 +1,10 @@
 //calculate correctness
 import * as gitService from '../apiProcess/gitApiProcess';
-
+import * as npmService from '../apiProcess/npmApiProcess';
 
 
 //print the number of stars for the given repository
-export async function printRepoInfo(owner: string, repo: string): Promise<void> {
+export async function correctnessMetric(owner: string, repo: string): Promise<void> {
   try {
     const stars = await gitService.getRepoStars(owner, repo);
     console.log(`The repository ${owner}/${repo} has ${stars} stars.`);
