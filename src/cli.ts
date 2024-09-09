@@ -2,7 +2,7 @@
 //Reads the file path from the command-line arguments, 
 //reads the URLs from the file, and calls the processUrls function from index.ts
 
-import { checkUrlType, UrlType } from './utils/urlUtils';
+import { checkUrlType, processUrl, UrlType } from './utils/urlUtils';
 import { readUrlsFromFile } from './utils/fileUtils';
 import { correctnessMetric } from './metrics/correctness';
 import { getGitHubRepoFromNpmUrl } from './apiProcess/npmApiProcess';
@@ -20,25 +20,16 @@ export async function cli() {
   try {
     // Extract URLs from file
     const urls = await readUrlsFromFile(args[0]);
-    //console.log(urls);
+    // console.log(`Input URL: ${urls}`);
 
     // Check URL type
-    urls.forEach(url => {
+    urls.forEach(async url => {
       const urlType = checkUrlType(url);
-
-      // Check if the URL is valid, only then calculate metrics etc.
-      if (urlType != UrlType.Invalid) {
-        //get number of star in a repo
-        if(urlType == 'GitHub'){
-          const [owner, repo] = url.split('/').slice(-2);
-          //correctnessMetric(owner, repo);
-        } else if (urlType == 'npm'){
-          const packageName = url.split('/').slice(-1)[0];
-          // const githubUrlFromNpm = await getGitHubRepoFromNpmUrl(packageName);
-          // const githubHttp =  convertSshToHttps(githubUrlFromNpm);
-        }
-
+      if(urlType == 'npm'){
+        const x = await getGitHubRepoFromNpmUrl('browserify');
+        console.log(x);
       }
+
     });
 
   } catch (error) {
