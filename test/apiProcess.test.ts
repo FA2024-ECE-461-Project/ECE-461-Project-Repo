@@ -32,3 +32,5 @@ describe('getNumberFromApi', () => {
     expect(fetch).toHaveBeenCalledWith(expectedURL);
   });
 });
+
+//need to configure mock to ensure no Jest failure
