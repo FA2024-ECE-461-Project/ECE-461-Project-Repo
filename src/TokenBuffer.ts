@@ -1,7 +1,7 @@
 // internal structure referred by API_Caller
 // basic FIFO (First-In-First-Out) structure that is circular
 // this is meant to store GitHub tokens for each team member
-// All 4 tokens should be provided in th constructor
+// All 4 tokens should be provided to the constructor as strings
 
 class TokenBuffer {
     private buffer: [string, string, string, string];    //a tuple that only takes in 4 tokens
