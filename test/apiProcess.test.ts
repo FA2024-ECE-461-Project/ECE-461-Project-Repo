@@ -1,7 +1,7 @@
 import { getRepoStars } from "../src/apiProcess/gitApiProcess";
+import axios from 'axios';
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from a .env file into process.env
-// test/test.ts
 console.log("This is a test script.");
 
 //(global) variables available to all tests in this script
@@ -10,27 +10,39 @@ const owner = "cloudinary";
 const repo: string = "cloudinary_npm";
 const expectedURL = `${GITHUB_API_URL}/${owner}/${repo}`;
 
-// Mock the fetch API (should do this, but lets wait for the following to work first)
-// global.fetch = jest.fn(() =>
-//   Promise.resolve({
-//     json: () => Promise.resolve({ number: 42 }),
-//   })
-// );
+// Mock the axios behavior (should do this instead of doing real api calls)
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-describe('getNumberFromApi', () => {
-  it('should return a number from the API', async () => {
-    const result = await getRepoStars(owner, repo);
-    
-    // Check if the returned value is correct
-    expect(result).toBe(42);  // Expected number
-  });
+describe('getRepoStars', () => {
+  const mockOwner = 'octocat';
+  const mockRepo = 'Hello-World';
+  const mockUrl = `https://api.github.com/repos/${mockOwner}/${mockRepo}`;
 
-  it('should call the correct API endpoint', async () => {
-    await getRepoStars(owner, repo);
+  it('should return the number of stars on success', async () => {
+    // Mock the resolved response from axios.get
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        stargazers_count: 100,
+      },
+    });
+
+    const stars = await getRepoStars(mockOwner, mockRepo);
     
-    // Check if fetch was called with the correct API URL
-    expect(fetch).toHaveBeenCalledWith(expectedURL);
+    // Check that axios.get was called with the correct URL and headers
+    expect(mockedAxios.get).toHaveBeenCalledWith(mockUrl, {
+      headers: {
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      },
+    });
+
+    // Check the returned number of stars
+    expect(stars).toBe(100);
   });
+})
+
+afterEach(() => {
+  jest.clearAllMocks();
 });
 
 //need to configure mock to ensure no Jest failure

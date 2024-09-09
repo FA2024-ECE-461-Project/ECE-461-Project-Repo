@@ -9,5 +9,6 @@ export default {
   testEnvironment: "node",
   transform: {
     "^.+.tsx?$": ["ts-jest",{}],
-  },
+  }, 
+  testMatch: ['<rootDir>/test/*.test.(js|ts)']  //only run test scripts in the test folder
 };
