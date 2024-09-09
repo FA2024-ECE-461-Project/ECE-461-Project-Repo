@@ -2,12 +2,13 @@
   "name": "ece-461-project-repo",
   "version": "1.0.0",
   "description": "## This is a ECE461 Team Project Repository",
+  "type": "module",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Running tests...\" && jest",
+    "test": "echo \"Running tests...\" && jest ",
     "cli": "ts-node cli.ts"
   },
   "keywords": [],
@@ -18,7 +19,8 @@
     "@types/jest": "^29.5.12",
     "@types/node": "^22.5.2",
     "jest": "^29.7.0",
-    "ts-jest": "^29.2.5"
+    "ts-jest": "^29.2.5",
+    "tsx": "^4.19.0"
   },
   "dependencies": {
     "axios": "^1.7.7",
