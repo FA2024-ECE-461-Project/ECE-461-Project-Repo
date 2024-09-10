@@ -1,7 +1,8 @@
 import { getRepoStars, getRepoIssues, getRepoForks } from "../src/apiProcess/gitApiProcess";
 import axios from 'axios';
+// Load environment variables from a .env file into process.env
 import * as dotenv from 'dotenv';
-dotenv.config(); // Load environment variables from a .env file into process.env
+dotenv.config(); 
 
 // Mock the axios behavior (should do this instead of doing real api calls)
 jest.mock('axios');
@@ -13,10 +14,10 @@ const mockOwner = 'octocat';
 const mockRepo = 'Hello-World';
 const mockUrl = `https://api.github.com/repos/${mockOwner}/${mockRepo}`;
 
-// describe specifies test name, follow by driver + test code separated by the it clause
+// describe specifies the name of the test suite that contains all kinds of tests
 describe('test getRepoStars', () => {
-  // it clause specifies what each section would test/expect
-  it('should return the number of stars on success', async () => {
+  // test specifies the individual test (on different properties) 
+  test('should return the number of stars on success', async () => {
     // Mock the resolved response from axios.get
     mockedAxios.get.mockResolvedValue({
       data: {
