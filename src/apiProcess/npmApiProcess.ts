@@ -26,10 +26,10 @@ export async function getGitHubRepoFromNpmUrl(packageName: string): Promise<stri
       }
   
       // Convert SSH URL to HTTPS URL if necessary
-      // const gitHubUrl = repositoryUrl
-      //   .replace(/^git\+/, '')
-      //   .replace(/^ssh:\/\/git@github\.com\//, 'https://github.com/')
-      //   .replace(/\.git$/, '');
+      const gitHubUrl = repositoryUrl 
+        .replace(/^git\+/, '')
+        .replace(/^ssh:\/\/git@github\.com\//, 'https://github.com/')
+        .replace(/\.git$/, '');
   
       return repositoryUrl;
     } catch (error) {
