@@ -2,6 +2,9 @@
 if [ "$1" = "test" ]; then
   shift
   npm test "$@"
+elif [ "$1" = "install" ]; then
+  shift
+  npm install "$@"
 else
   npx tsx src/index.ts "$@"
 fi
