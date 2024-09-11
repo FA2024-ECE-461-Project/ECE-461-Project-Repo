@@ -3,9 +3,9 @@
 import {getGitHubRepoFromNpmUrl} from '../apiProcess/npmApiProcess';
 // Enum for URL types
 export enum UrlType {
-  GitHub = 'GitHub',
+  GitHub = 'github',
   npm = 'npm',
-  Invalid = 'Invalid URL'
+  Invalid = 'invalid'
 }
 
 //github repo info
@@ -47,8 +47,8 @@ export function convertSshToHttps(sshUrl: string): string | null {
                  .replace(/^git@github.com:/, 'https://github.com/')
                  .replace(/\.git$/, '');
   }
-  // If the URL is not an SSH URL, return null
-  return null;
+  // If the URL is not an SSH URL, return input URL
+  return sshUrl;
 }
 
 export function extractOwnerAndRepo(gitHubUrl: string): RepoInfo {
@@ -59,19 +59,36 @@ export function extractOwnerAndRepo(gitHubUrl: string): RepoInfo {
   return { owner, repo };
 }
 
-export async function processUrl(UrlType: 'github' | 'npm' | 'invalid', url: string): Promise<RepoInfo> {
+export function extractPackageNameFromUrl(url: string): string {
+  const trimmedUrl = url.trim(); // Trim any leading or trailing whitespace
+  const regex = /https:\/\/www\.npmjs\.com\/package\/([^\/]+)/;
+  const match = trimmedUrl.match(regex);
+
+  // console.log('URL:', trimmedUrl);
+  // console.log('Match:', match);
+
+  if (!match || match.length < 2) {
+    throw new Error('Invalid npm URL');
+  }
+
+  return match[1];
+}
+
+export async function processUrl(UrlType: 'github' | 'npm' | 'invalid', url: string): Promise<void> {
     if (UrlType === 'invalid') {
       throw new Error('Invalid URL type');
     }
-  
-    if (UrlType === 'github') {
-      return extractOwnerAndRepo(url);
+    else if (UrlType === 'npm') {
+      const packageName = extractPackageNameFromUrl(url);
+      const gitHubUrl = await getGitHubRepoFromNpmUrl(packageName);
+      const httpsUrl = convertSshToHttps(gitHubUrl);
+      const { owner, repo } = extractOwnerAndRepo(httpsUrl);
+      console.log(`Owner: ${owner}, Repo: ${repo}`);
+      console.log(httpsUrl);
     }
-  
-    if (UrlType === 'npm') {
-      const gitHubUrl = await getGitHubRepoFromNpmUrl(url);
-      return extractOwnerAndRepo(gitHubUrl);
+    else if (UrlType === 'github') {
+      const { owner, repo } = extractOwnerAndRepo(url);
+      console.log(`Owner: ${owner}, Repo: ${repo}`);
+      console.log(url);
     }
-  
-    throw new Error('Unknown URL type');
   }
