@@ -1,5 +1,11 @@
-#ignor node_modules
+#ignore node_modules
 node_modules
+
+#ignore .env
+.env
+
+#ignore coverage/ generated after Jest
+coverage
 
 #ignor .env
 .env
