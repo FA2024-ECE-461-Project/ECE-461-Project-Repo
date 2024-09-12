@@ -74,21 +74,26 @@ export function extractPackageNameFromUrl(url: string): string {
   return match[1];
 }
 
-export async function processUrl(UrlType: 'github' | 'npm' | 'invalid', url: string): Promise<void> {
-    if (UrlType === 'invalid') {
-      throw new Error('Invalid URL type');
-    }
-    else if (UrlType === 'npm') {
-      const packageName = extractPackageNameFromUrl(url);
-      const gitHubUrl = await getGitHubRepoFromNpmUrl(packageName);
-      const httpsUrl = convertSshToHttps(gitHubUrl);
-      const { owner, repo } = extractOwnerAndRepo(httpsUrl);
-      console.log(`Owner: ${owner}, Repo: ${repo}`);
-      console.log(httpsUrl);
-    }
-    else if (UrlType === 'github') {
-      const { owner, repo } = extractOwnerAndRepo(url);
-      console.log(`Owner: ${owner}, Repo: ${repo}`);
-      console.log(url);
-    }
+export async function processUrl(UrlType: 'github' | 'npm' | 'invalid', url: string): Promise<RepoInfo> {
+  if (UrlType === 'invalid') {
+    throw new Error('Invalid URL type');
   }
+
+  let owner: string = '';
+  let repo: string = '';
+
+  if (UrlType === 'npm') {
+    const packageName = extractPackageNameFromUrl(url);
+    const gitHubUrl = await getGitHubRepoFromNpmUrl(packageName);
+    const httpsUrl = convertSshToHttps(gitHubUrl);
+    ({ owner, repo } = extractOwnerAndRepo(httpsUrl ?? ""));
+    console.log(`Owner: ${owner}, Repo: ${repo}`);
+    console.log(httpsUrl);
+  } else if (UrlType === 'github') {
+    ({ owner, repo } = extractOwnerAndRepo(url));
+    console.log(`Owner: ${owner}, Repo: ${repo}`);
+    console.log(url);
+  }
+
+  return { owner, repo };
+}
