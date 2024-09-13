@@ -7,7 +7,7 @@ import {calculateCorrectness} from './correctness';
 
 export async function GetNetScore(owner: string, repo: string, url: string): Promise<any> {
   try {
-    console.log('\nFetching data from GitHub\n');
+    // console.log('\nFetching data from GitHub\n');
     const gitInfo = await getGithubInfo(owner, repo);
 
     // // Print repository information

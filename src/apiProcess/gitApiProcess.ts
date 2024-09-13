@@ -46,7 +46,6 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
-    const license = data.license?.name || 'No license';
     const discrption = data.description || 'No description';
     const readmeUrl = `https://api.github.com/repos/${owner}/${repo}/readme`;
     const readmeResponse = await axios.get(readmeUrl, {
