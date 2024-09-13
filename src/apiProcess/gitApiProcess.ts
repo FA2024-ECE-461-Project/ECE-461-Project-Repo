@@ -19,7 +19,7 @@ export interface RepoDetails {
   discrption: string;
 }
 
-// License map to match all licenses from your provided list
+// License map
 const licenseMap: { [key: string]: string } = {
   "AFL-3.0": "Academic Free License v3.0",
   "Apache-2.0": "Apache License 2.0",
@@ -56,7 +56,7 @@ const licenseMap: { [key: string]: string } = {
   "Zlib": "zLib License"
 };
 
-// Function to extract the license from README using regex
+// extract the license from README using regex
 function extractLicenseFromReadme(readmeContent: string): string | null {
   // Updated regex to match all listed licenses
   const licenseRegex = new RegExp(
@@ -71,7 +71,7 @@ function extractLicenseFromReadme(readmeContent: string): string | null {
 
   return null;
 }
-// Function to get the GitHub repository details
+// get the GitHub repository details
 export async function getGithubInfo(owner: string, repo: string): Promise<RepoDetails> {
   try {
     const url = `https://api.github.com/repos/${owner}/${repo}`;
