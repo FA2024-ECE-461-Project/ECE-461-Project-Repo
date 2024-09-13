@@ -87,7 +87,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
-    const license = data.license?.name || 'No license';
+    let license = data.license?.name || 'No license';
     // let license = licenseMap[data.license?.spdx_id] || 'No license';
     console.log(license);
     const discrption = data.description || 'No description';
@@ -105,6 +105,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       const licenseFromReadme = extractLicenseFromReadme(readmeContent);
       if (licenseFromReadme) {
         license = licenseFromReadme;
+        console.log(license);
         console.log('test')
       }
     }
