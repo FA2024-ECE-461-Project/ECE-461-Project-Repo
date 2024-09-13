@@ -22,6 +22,7 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     const rampUpTime = calculateRampUpTime(gitInfo);
     const responsiveness = calculateResponsiveness(gitInfo);
     const licenseCompatibility = calculateLicenseCompatibility(gitInfo);
+    console.log(licenseCompatibility)
     const busFactor = calculateBusFactor(gitInfo);
     const correctnessScore = calculateCorrectness(gitInfo);
 
