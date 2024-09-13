@@ -1,4 +1,4 @@
-import { getRepoStars, getRepoIssues, getRepoForks } from "../src/apiProcess/gitApiProcess";
+import { getGithubInfo } from "../src/apiProcess/gitApiProcess";
 import axios from 'axios';
 // Load environment variables from a .env file into process.env
 import * as dotenv from 'dotenv';
