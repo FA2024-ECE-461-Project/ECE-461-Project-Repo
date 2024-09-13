@@ -26,19 +26,6 @@ export async function cli() {
     //   try{
     //     const {owner, repo} = await processUrl(urlType, url);
 
-<<<<<<< HEAD
-    // Process each URL
-    for (const url of urls) {
-      const urlType = checkUrlType(url);
-      try{
-        const {owner, repo} = await processUrl(urlType, url);
-        await GetNetScore(owner, repo); 
-
-      } catch(error) {
-        console.error(`Error processing URL ${url}:`, error);
-      }
-    }
-=======
     //     //print repo url and owner and repo
     //     console.log(`\nOwner: ${owner}, Repo: ${repo}`)
     //     console.log(`URL: ${url}`);
@@ -48,8 +35,7 @@ export async function cli() {
     //     console.error(`Error processing URL ${url}:`, error);
     //   }
     // }
-    getGithubInfo("lodash", "lodash");
->>>>>>> origin/main
+    await getGithubInfo("cloudinary", "cloudinary_npm");
   } catch (error) {
     console.error(error);
   }
