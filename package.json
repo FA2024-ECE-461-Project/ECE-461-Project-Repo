@@ -19,6 +19,7 @@
     "@types/jest": "^29.5.12",
     "@types/node": "^22.5.2",
     "jest": "^29.7.0",
+    "license-compatibility-checker": "github:HansHammel/license-compatibility-checker",
     "ts-jest": "^29.2.5",
     "tsx": "^4.19.0"
   },
@@ -27,6 +28,7 @@
     "dotenv": "^16.4.5",
     "fs": "^0.0.1-security",
     "ts-node": "^10.9.2",
+    "tslog": "^4.9.3",
     "typescript": "^5.5.4"
   }
 }
