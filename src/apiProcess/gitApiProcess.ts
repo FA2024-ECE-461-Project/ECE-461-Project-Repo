@@ -81,6 +81,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       }
     });
 
+    //get data from github
     const data = response.data;
     const stars = data.stargazers_count;
     const issues = data.open_issues_count;
@@ -106,6 +107,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       }
     }
 
+    //return the repository details
     const repoDetails: RepoDetails = {
       owner: owner,
       repo: repo,
@@ -116,7 +118,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       license: license,
       discrption: discrption
     };
-    console.log(repoDetails.license);
+    // console.log(repoDetails.license);
     return repoDetails;
 
   } catch (error) {

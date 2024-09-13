@@ -34,7 +34,7 @@ export async function cli() {
         // Process URL to get owner and repo
         const { owner, repo } = await processUrl(urlType, url);
         const metrics = await GetNetScore(owner, repo, url);
-        console.log(JSON.stringify(metrics, null, 0));
+        console.log(JSON.stringify(metrics, null, 2));         //change third argument to 0 to remove indentation for evaluation
       } catch (error) {
         console.error(`Error processing URL ${url}:`, error);
       }
