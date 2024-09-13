@@ -3,7 +3,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from a .env file into process.env
 import axios from 'axios';
-import { Buffer } from 'buffer';
+// import { Buffer } from 'buffer';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
 
@@ -19,14 +19,54 @@ export interface RepoDetails {
   discrption: string;
 }
 
-// Helper function to extract license from README using regex
+// License map to match all licenses from your provided list
+const licenseMap: { [key: string]: string } = {
+  "AFL-3.0": "Academic Free License v3.0",
+  "Apache-2.0": "Apache License 2.0",
+  "Artistic-2.0": "Artistic License 2.0",
+  "BSL-1.0": "Boost Software License 1.0",
+  "BSD-2-Clause": "BSD 2-clause 'Simplified' License",
+  "BSD-3-Clause": "BSD 3-clause 'New' or 'Revised' License",
+  "BSD-3-Clause-Clear": "BSD 3-clause Clear License",
+  "BSD-4-Clause": "BSD 4-clause 'Original' or 'Old' License",
+  "0BSD": "BSD Zero-Clause License",
+  "CC0-1.0": "Creative Commons Zero v1.0 Universal",
+  "CC-BY-4.0": "Creative Commons Attribution 4.0",
+  "CC-BY-SA-4.0": "Creative Commons Attribution ShareAlike 4.0",
+  "WTFPL": "Do What The F*ck You Want To Public License",
+  "ECL-2.0": "Educational Community License v2.0",
+  "EPL-1.0": "Eclipse Public License 1.0",
+  "EPL-2.0": "Eclipse Public License 2.0",
+  "EUPL-1.1": "European Union Public License 1.1",
+  "AGPL-3.0": "GNU Affero General Public License v3.0",
+  "GPL-2.0": "GNU General Public License v2.0",
+  "GPL-3.0": "GNU General Public License v3.0",
+  "LGPL-2.1": "GNU Lesser General Public License v2.1",
+  "LGPL-3.0": "GNU Lesser General Public License v3.0",
+  "ISC": "ISC License",
+  "LPPL-1.3c": "LaTeX Project Public License v1.3c",
+  "MS-PL": "Microsoft Public License",
+  "MIT": "MIT License",
+  "MPL-2.0": "Mozilla Public License 2.0",
+  "OSL-3.0": "Open Software License 3.0",
+  "PostgreSQL": "PostgreSQL License",
+  "OFL-1.1": "SIL Open Font License 1.1",
+  "NCSA": "University of Illinois/NCSA Open Source License",
+  "Unlicense": "The Unlicense",
+  "Zlib": "zLib License"
+};
+
+// Function to extract the license from README using regex
 function extractLicenseFromReadme(readmeContent: string): string | null {
-  // Regex to match common license patterns in a README file
-  const licenseRegex = /(license\s*:\s*([A-Za-z\s]*)|\bMIT\b|\bGPL\b|\bApache\b|\bBSD\b|\bMPL\b)/i;
+  // Updated regex to match all listed licenses
+  const licenseRegex = new RegExp(
+    Object.keys(licenseMap)
+      .map(license => `\\b${license}\\b`)
+      .join("|"), "i");
 
   const match = readmeContent.match(licenseRegex);
   if (match) {
-    return match[0].trim(); // Return the matched license
+    return licenseMap[match[0]] || null; // Return the license name from the map if matched
   }
 
   return null;
@@ -46,17 +86,25 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
-    const license = data.license?.name || 'No license';
+    // const license = data.license?.name || 'No license';
+    let license = licenseMap[data.license?.spdx_id] || 'No license';
     const discrption = data.description || 'No description';
-    const readmeUrl = `https://api.github.com/repos/${owner}/${repo}/readme`;
-    const readmeResponse = await axios.get(readmeUrl, {
-      headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`,
-      },
-    });
 
-    const readmeContent = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
-    const licenseFromReadme = extractLicenseFromReadme(readmeContent) || 'No license in README';
+    if (license === 'No license') {
+      const readmeUrl = `${GITHUB_API_URL}/${owner}/${repo}/readme`;
+      const readmeResponse = await axios.get(readmeUrl, {
+        headers: {
+          Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      });
+
+      // Decode README content from base64
+      const readmeContent = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
+      const licenseFromReadme = extractLicenseFromReadme(readmeContent);
+      if (licenseFromReadme) {
+        license = licenseFromReadme;
+      }
+    }
 
     const repoDetails: RepoDetails = {
       owner: owner,
@@ -65,9 +113,10 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       issues: issues,
       forks: forks,
       pullRequests: pullRequests,
-      license: licenseFromReadme,
+      license: license,
       discrption: discrption
     };
+    console.log(repoDetails.license);
     return repoDetails;
 
   } catch (error) {
