@@ -29,7 +29,7 @@ export async function cli() {
         console.log(`\nOwner: ${owner}, Repo: ${repo}`);
         console.log(`URL: ${url}`);
 
-        const metrics = await GetNetScore(owner, repo);
+        const metrics = await GetNetScore(owner, repo, url);
         console.log(JSON.stringify(metrics, null, 2));
         console.log("------------------------------------------------------")
       } catch (error) {

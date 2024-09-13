@@ -5,18 +5,18 @@ import {calculateLicenseCompatibility} from './licenseCompatibility';
 import {calculateBusFactor} from './busFactor';
 import {calculateCorrectness} from './correctness';
 
-export async function GetNetScore(owner: string, repo: string): Promise<any> {
+export async function GetNetScore(owner: string, repo: string, url: string): Promise<any> {
   try {
     console.log('\nFetching data from GitHub\n');
     const gitInfo = await getGithubInfo(owner, repo);
 
-    // Print repository information
-    console.log(`The repository ${owner}/${repo} has ${gitInfo.stars} stars.`);
-    console.log(`The repository ${owner}/${repo} has ${gitInfo.issues} Issues.`);
-    console.log(`The repository ${owner}/${repo} has ${gitInfo.pullRequests} PullRequests.`);
-    console.log(`The repository ${owner}/${repo} has ${gitInfo.forks} Forks.`);
-    console.log(`The repository ${owner}/${repo} has ${gitInfo.license} License.`);
-    console.log(`The repository ${owner}/${repo} has ${gitInfo.description} Description.`);
+    // // Print repository information
+    // console.log(`The repository ${owner}/${repo} has ${gitInfo.stars} stars.`);
+    // console.log(`The repository ${owner}/${repo} has ${gitInfo.issues} Issues.`);
+    // console.log(`The repository ${owner}/${repo} has ${gitInfo.pullRequests} PullRequests.`);
+    // console.log(`The repository ${owner}/${repo} has ${gitInfo.forks} Forks.`);
+    // console.log(`The repository ${owner}/${repo} has ${gitInfo.license} License.`);
+    // console.log(`The repository ${owner}/${repo} has ${gitInfo.description} Description.`);
 
     // Get metrics values
     const rampUpTime = calculateRampUpTime(gitInfo);
@@ -30,7 +30,7 @@ export async function GetNetScore(owner: string, repo: string): Promise<any> {
 
     // Return a JSON object with the metrics values
     return {
-      URL: `https://github.com/${owner}/${repo}`,
+      URL: url,
       NetScore: NetScore,
       NetScore_Latency: 0.033, // Example latency value, replace with actual if available
       RampUp: rampUpTime,
