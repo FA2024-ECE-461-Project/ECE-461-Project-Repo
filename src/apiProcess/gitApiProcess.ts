@@ -34,16 +34,6 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
     const license = data.license?.name || 'No license';
    
-    // const licenseFiles = data.filter((file: any) => file.name.toLowerCase().includes('license'));
-
-    // const licenses: string[] = [];
-
-    // // Fetch and read each license file
-    // for (const licenseFile of licenseFiles) {
-    //   const licenseUrl = licenseFile.download_url;
-    //   const licenseResponse = await axios.get(licenseUrl);
-    //   licenses.push(licenseResponse.data);
-    // }
 
     const repoDetails: RepoDetails = {
       owner: owner,

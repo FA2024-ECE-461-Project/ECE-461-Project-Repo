@@ -26,6 +26,7 @@ export async function cli() {
       try{
         const {owner, repo} = await processUrl(urlType, url);
         await GetNetScore(owner, repo); 
+
       } catch(error) {
         console.error(`Error processing URL ${url}:`, error);
       }
