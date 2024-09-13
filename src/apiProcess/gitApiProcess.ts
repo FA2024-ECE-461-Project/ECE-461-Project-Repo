@@ -71,6 +71,7 @@ function extractLicenseFromReadme(readmeContent: string): string | null {
 
   return null;
 }
+
 // get the GitHub repository details
 export async function getGithubInfo(owner: string, repo: string): Promise<RepoDetails> {
   try {
@@ -86,11 +87,12 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
-    // const license = data.license?.name || 'No license';
-    let license = licenseMap[data.license?.spdx_id] || 'No license';
+    const license = data.license?.name || 'No license';
+    // let license = licenseMap[data.license?.spdx_id] || 'No license';
+    console.log(license);
     const discrption = data.description || 'No description';
 
-    if (license === 'No license') {
+    if (license === 'No license' || license === 'Other') {
       const readmeUrl = `${GITHUB_API_URL}/${owner}/${repo}/readme`;
       const readmeResponse = await axios.get(readmeUrl, {
         headers: {
@@ -103,6 +105,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       const licenseFromReadme = extractLicenseFromReadme(readmeContent);
       if (licenseFromReadme) {
         license = licenseFromReadme;
+        console.log('test')
       }
     }
 
@@ -116,7 +119,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       license: license,
       discrption: discrption
     };
-    console.log(repoDetails.license);
+    
     return repoDetails;
 
   } catch (error) {
