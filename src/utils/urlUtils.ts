@@ -1,5 +1,3 @@
-//Contains utility functions for parsing and validating URLs.
-
 import {getGitHubRepoFromNpmUrl} from '../apiProcess/npmApiProcess';
 // Enum for URL types
 export enum UrlType {
@@ -29,17 +27,7 @@ export function checkUrlType(url: string): UrlType {
   }
 }
 
-// export function convertSshToHttps(sshUrl: string): string | null {
-//   // Check if the URL is an SSH GitHub URL
-//   if (sshUrl.startsWith('ssh://git@github.com/')) {
-//     // Replace the SSH prefix with the HTTPS prefix and remove the optional .git suffix
-//     return sshUrl.replace(/^ssh:\/\/git@github.com\//, 'https://github.com/').replace(/\.git$/, '');
-//   }
-//   // If the URL is not an SSH URL, return it as is
-//   return sshUrl;
-// }
-
-export function convertSshToHttps(sshUrl: string): string | null {
+export function convertSshToHttps(sshUrl: string): string {
   // Check if the URL is an SSH GitHub URL
   if (sshUrl.startsWith('ssh://git@github.com/') || sshUrl.startsWith('git@github.com:')) {
     // Replace the SSH prefix with the HTTPS prefix and remove the optional .git suffix
@@ -61,17 +49,25 @@ export function extractOwnerAndRepo(gitHubUrl: string): RepoInfo {
 
 export function extractPackageNameFromUrl(url: string): string {
   const trimmedUrl = url.trim(); // Trim any leading or trailing whitespace
-  const regex = /https:\/\/www\.npmjs\.com\/package\/([^\/]+)/;
-  const match = trimmedUrl.match(regex);
 
-  // console.log('URL:', trimmedUrl);
-  // console.log('Match:', match);
+  // Regex to match npm package URL
+  const npmRegex = /https:\/\/www\.npmjs\.com\/package\/([^\/]+)/;
+  const npmMatch = trimmedUrl.match(npmRegex);
 
-  if (!match || match.length < 2) {
-    throw new Error('Invalid npm URL');
+  if (npmMatch && npmMatch.length >= 2) {
+    return npmMatch[1]; // Return the package name
   }
 
-  return match[1];
+  // Regex to match GitHub URL
+  const githubRegex = /https:\/\/github\.com\/([^\/]+\/[^\/]+)/;
+  const githubMatch = trimmedUrl.match(githubRegex);
+
+  if (githubMatch) {
+    const {owner, repo} = extractOwnerAndRepo(url);
+    return  repo;// Return the GitHub RepoName
+  }
+
+  throw new Error('Invalid URL');
 }
 
 export async function processUrl(UrlType: 'github' | 'npm' | 'invalid', url: string): Promise<RepoInfo> {
@@ -84,15 +80,15 @@ export async function processUrl(UrlType: 'github' | 'npm' | 'invalid', url: str
 
   if (UrlType === 'npm') {
     const packageName = extractPackageNameFromUrl(url);
-    const gitHubUrl = await getGitHubRepoFromNpmUrl(packageName);
-    const httpsUrl = convertSshToHttps(gitHubUrl);
+    const giturl = await getGitHubRepoFromNpmUrl(packageName);
+    const httpsUrl = convertSshToHttps(giturl);
     ({ owner, repo } = extractOwnerAndRepo(httpsUrl ?? ""));
-    console.log(`Owner: ${owner}, Repo: ${repo}`);
-    console.log(httpsUrl);
+    // console.log(httpsUrl);
+    // console.log(`Owner: ${owner}, Repo: ${repo}\n\n`);
   } else if (UrlType === 'github') {
     ({ owner, repo } = extractOwnerAndRepo(url));
-    console.log(`Owner: ${owner}, Repo: ${repo}`);
-    console.log(url);
+    // console.log(url);
+    // console.log(`Owner: ${owner}, Repo: ${repo}\n\n`);
   }
 
   return { owner, repo };

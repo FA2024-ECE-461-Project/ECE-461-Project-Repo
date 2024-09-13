@@ -2,10 +2,11 @@
 //Reads the file path from the command-line arguments, 
 //reads the URLs from the file, and calls the processUrls function from index.ts
 
-import { checkUrlType, processUrl, UrlType } from './utils/urlUtils';
+import { checkUrlType, processUrl, extractPackageNameFromUrl } from './utils/urlUtils';
 import { readUrlsFromFile } from './utils/fileUtils';
 import { GetNetScore } from './metrics/netScore';
-
+import {getNpmPackageInfo} from './apiProcess/npmApiProcess';
+import {getGithubInfo} from './apiProcess/gitApiProcess';
 
 // Parse command-line arguments
 const args = process.argv.slice(2); // Examine the first command line arg feed into cli.ts (similar to argv[1] in C programming)
@@ -17,9 +18,15 @@ if (args.length !== 1) {
 // Main function to handle the asynchronous logic
 export async function cli() {
   try {
-    // Extract URLs from file
-    const urls = await readUrlsFromFile('url.txt'); // Assuming the file name is 'url.txt'
+    // // Extract URLs from file
+    // const urls = await readUrlsFromFile('url.txt'); // Assuming the file name is 'url.txt'
+    // // Process each URL
+    // for (const url of urls) {
+    //   const urlType = checkUrlType(url);
+    //   try{
+    //     const {owner, repo} = await processUrl(urlType, url);
 
+<<<<<<< HEAD
     // Process each URL
     for (const url of urls) {
       const urlType = checkUrlType(url);
@@ -31,6 +38,18 @@ export async function cli() {
         console.error(`Error processing URL ${url}:`, error);
       }
     }
+=======
+    //     //print repo url and owner and repo
+    //     console.log(`\nOwner: ${owner}, Repo: ${repo}`)
+    //     console.log(`URL: ${url}`);
+    //     const packageName = extractPackageNameFromUrl(url);
+    //     await GetNetScore(owner, repo, packageName); 
+    //   } catch(error) {
+    //     console.error(`Error processing URL ${url}:`, error);
+    //   }
+    // }
+    getGithubInfo("lodash", "lodash");
+>>>>>>> origin/main
   } catch (error) {
     console.error(error);
   }

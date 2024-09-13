@@ -15,6 +15,7 @@ export interface RepoDetails {
   forks: number;
   pullRequests: number;
   license: string[];
+  discrption: string;
 }
 
 // Function to get the GitHub repository details
@@ -28,12 +29,18 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     });
 
     const data = response.data;
+    console.log(`fetching data for ${owner}/${repo}`);
+    console.log(`Data: ${JSON.stringify(data)}`);
     const stars = data.stargazers_count;
     const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
     const license = data.license?.name || 'No license';
+<<<<<<< HEAD
    
+=======
+    const discrption = data.description || 'No description';
+>>>>>>> origin/main
 
     const repoDetails: RepoDetails = {
       owner: owner,
@@ -42,7 +49,8 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       issues: issues,
       forks: forks,
       pullRequests: pullRequests,
-      license: license
+      license: license,
+      discrption: discrption
     };
 
     return repoDetails;
