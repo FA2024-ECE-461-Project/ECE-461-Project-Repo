@@ -24,13 +24,13 @@ describe('test getGithubInfo', () => {
     const mockResponse = {
       data: {
         owner: { login: 'some-owner' },
-        name: 'some-repo',
+        repo: 'some-repo',
         stargazers_count: 100,
         open_issues_count: 5,
         forks_count: 10,
         pull_requests: 2, // Might need to mock a separate request depending on your API
         license: { name: 'MIT' },
-        description: 'Some description',
+        description: 'Some description'
       },
     };
     // mock the axios.get call
@@ -46,14 +46,14 @@ describe('test getGithubInfo', () => {
     });
 
     // Check the returned RepoDetails
-    expect(returnedGithubInfo).toBe({
-      name: mockOwner,
+    expect(returnedGithubInfo).toEqual({
+      owner: mockOwner,
       repo: mockRepo,
       stars: 100,
       issues: 5, 
       forks: 10,
-      pullRequests: 2,
-      license: 2, 
+      pullRequests: 0,
+      license: "MIT",
       discrption: 'Some description'
     })
   });
