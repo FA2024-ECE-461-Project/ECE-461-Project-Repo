@@ -1,43 +1,51 @@
 import {getGithubInfo, RepoDetails} from '../apiProcess/gitApiProcess';
-import {getNpmPackageInfo} from '../apiProcess/npmApiProcess';
 import {calculateRampUpTime} from './rampUpTime';
 import {calculateResponsiveness} from './responsiveness';
 import {calculateLicenseCompatibility} from './licenseCompatibility';
 import {calculateBusFactor} from './busFactor';
 import {calculateCorrectness} from './correctness';
 
-//print the number of stars for the given repository
-export async function GetNetScore(owner: string, repo: string, packageName: string): Promise<void> {
+export async function GetNetScore(owner: string, repo: string): Promise<any> {
   try {
-    console.log ('\nFetching data from github\n ');
+    console.log('\nFetching data from GitHub\n');
     const gitInfo = await getGithubInfo(owner, repo);
-    //print the number of stars for the given repository
+
+    // Print repository information
     console.log(`The repository ${owner}/${repo} has ${gitInfo.stars} stars.`);
-    //print the number of issues for the given repository
     console.log(`The repository ${owner}/${repo} has ${gitInfo.issues} Issues.`);
-    //print the number of pull requests for the given repository
     console.log(`The repository ${owner}/${repo} has ${gitInfo.pullRequests} PullRequests.`);
-    //print the number of forks for the given repository
     console.log(`The repository ${owner}/${repo} has ${gitInfo.forks} Forks.`);
-    //print the license for the given repository
     console.log(`The repository ${owner}/${repo} has ${gitInfo.license} License.`);
-    
-    // get metrics values
+    console.log(`The repository ${owner}/${repo} has ${gitInfo.description} Description.`);
+
+    // Get metrics values
     const rampUpTime = calculateRampUpTime(gitInfo);
     const responsiveness = calculateResponsiveness(gitInfo);
     const licenseCompatibility = calculateLicenseCompatibility(gitInfo);
     const busFactor = calculateBusFactor(gitInfo);
     const correctnessScore = calculateCorrectness(gitInfo);
-    
-    //return a JDSON object with the metrics values
-    return 
+
+    //calculate the NetScore
+    const NetScore = correctnessScore + busFactor + licenseCompatibility + responsiveness + rampUpTime
+
+    // Return a JSON object with the metrics values
+    return {
+      URL: `https://github.com/${owner}/${repo}`,
+      NetScore: NetScore,
+      NetScore_Latency: 0.033, // Example latency value, replace with actual if available
+      RampUp: rampUpTime,
+      RampUp_Latency: 0.023, // Example latency value, replace with actual if available
+      Correctness: correctnessScore,
+      Correctness_Latency: 0.005, // Example latency value, replace with actual if available
+      BusFactor: busFactor,
+      BusFactor_Latency: 0.002, // Example latency value, replace with actual if available
+      ResponsiveMaintainer: responsiveness,
+      ResponsiveMaintainer_Latency: 0.002, // Example latency value, replace with actual if available
+      License: licenseCompatibility,
+      License_Latency: 0.001 // Example latency value, replace with actual if available
+    };
   } catch (error) {
     console.error('GetNetScore: Failed to get repository info:', error);
+    return null;
   }
-
-  console.log('******************************************************************************************');
-
-
-
-
 }

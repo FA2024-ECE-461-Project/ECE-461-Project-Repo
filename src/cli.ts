@@ -5,8 +5,6 @@
 import { checkUrlType, processUrl, extractPackageNameFromUrl } from './utils/urlUtils';
 import { readUrlsFromFile } from './utils/fileUtils';
 import { GetNetScore } from './metrics/netScore';
-import {getNpmPackageInfo} from './apiProcess/npmApiProcess';
-import {getGithubInfo} from './apiProcess/gitApiProcess';
 
 // Parse command-line arguments
 const args = process.argv.slice(2); // Examine the first command line arg feed into cli.ts (similar to argv[1] in C programming)
@@ -18,27 +16,28 @@ if (args.length !== 1) {
 // Main function to handle the asynchronous logic
 export async function cli() {
   try {
-    // // Extract URLs from file
-    // const urls = await readUrlsFromFile('url.txt'); // Assuming the file name is 'url.txt'
-    // // Process each URL
-    // for (const url of urls) {
-    //   const urlType = checkUrlType(url);
-    //   try{
-    //     const {owner, repo} = await processUrl(urlType, url);
+    // Extract URLs from file
+    const urls = await readUrlsFromFile('url.txt'); // Assuming the file name is 'url.txt'
+    const results = [];
 
-    //     //print repo url and owner and repo
-    //     console.log(`\nOwner: ${owner}, Repo: ${repo}`)
-    //     console.log(`URL: ${url}`);
-    //     const packageName = extractPackageNameFromUrl(url);
-    //     await GetNetScore(owner, repo, packageName); 
-    //   } catch(error) {
-    //     console.error(`Error processing URL ${url}:`, error);
-    //   }
-    // }
-    getGithubInfo("lodash", "lodash");
+    // Process each URL
+    for (const url of urls) {
+      const urlType = checkUrlType(url);
+      try {
+        // Process URL to get owner and repo
+        const { owner, repo } = await processUrl(urlType, url);
+        console.log(`\nOwner: ${owner}, Repo: ${repo}`);
+        console.log(`URL: ${url}`);
+
+        const metrics = await GetNetScore(owner, repo);
+        console.log(JSON.stringify(metrics, null, 2));
+        console.log("------------------------------------------------------")
+      } catch (error) {
+        console.error(`Error processing URL ${url}:`, error);
+      }
+    }
   } catch (error) {
     console.error(error);
   }
 }
-
 
