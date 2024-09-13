@@ -68,7 +68,6 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       license: licenseFromReadme,
       discrption: discrption
     };
-    console.log(repoDetails.license)
     return repoDetails;
 
   } catch (error) {
