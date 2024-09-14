@@ -46,7 +46,8 @@ describe('test getGithubInfo', () => {
     });
 
     // Check the returned RepoDetails
-    expect(returnedGithubInfo).toEqual({ //use toEqual to check if 2 classes' fields have equal values
+    //use toEqual when checking if 2 classes' have same values in each field
+    expect(returnedGithubInfo).toEqual({ 
       owner: mockOwner,
       repo: mockRepo,
       stars: 100,
