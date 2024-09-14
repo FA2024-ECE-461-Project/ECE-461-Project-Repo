@@ -82,6 +82,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       }
     });
 
+    //get data from github
     const data = response.data;
     const stars = data.stargazers_count;
     const issues = data.open_issues_count;
@@ -98,7 +99,11 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
           Authorization: `token ${process.env.GITHUB_TOKEN}`,
         },
       });
-
+      
+      //check if the readme file is empty
+      if (!readmeResponse.data.content) {
+        console.error(`The README file for ${owner}/${repo} is empty`);
+      }
       // Decode README content from base64
       const readmeContent = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
       const licenseFromReadme = extractLicenseFromReadme(readmeContent);
@@ -107,6 +112,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       }
     }
 
+    //return the repository details
     const repoDetails: RepoDetails = {
       owner: owner,
       repo: repo,
@@ -120,22 +126,6 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     
     return repoDetails;
 
-  } catch (error) {
-    console.error(`Failed to fetch data for ${owner}/${repo}:`, error);
-    throw error;
-  }
-}
-
-// Function to get the number of pull requests for a repository
-export async function getRepoPullRequests(owner: string, repo: string): Promise<number> {
-  try {
-    const url = `${GITHUB_API_URL}/${owner}/${repo}/pulls`;
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`
-      }
-    });
-    return response.data.length;
   } catch (error) {
     console.error(`Failed to fetch data for ${owner}/${repo}:`, error);
     throw error;

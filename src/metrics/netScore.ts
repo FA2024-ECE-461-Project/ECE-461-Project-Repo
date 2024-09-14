@@ -7,7 +7,7 @@ import {calculateCorrectness} from './correctness';
 
 export async function GetNetScore(owner: string, repo: string, url: string): Promise<any> {
   try {
-    console.log('\nFetching data from GitHub\n');
+    // console.log('\nFetching data from GitHub\n');
     const gitInfo = await getGithubInfo(owner, repo);
 
     // // Print repository information
@@ -22,7 +22,7 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     const rampUpTime = calculateRampUpTime(gitInfo);
     const responsiveness = calculateResponsiveness(gitInfo);
     const licenseCompatibility = calculateLicenseCompatibility(gitInfo);
-    console.log(licenseCompatibility)
+    //console.log(licenseCompatibility)
     const busFactor = calculateBusFactor(gitInfo);
     const correctnessScore = calculateCorrectness(gitInfo);
 
