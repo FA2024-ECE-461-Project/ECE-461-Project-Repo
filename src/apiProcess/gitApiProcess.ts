@@ -130,19 +130,3 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     throw error;
   }
 }
-
-// Function to get the number of pull requests for a repository
-export async function getRepoPullRequests(owner: string, repo: string): Promise<number> {
-  try {
-    const url = `${GITHUB_API_URL}/${owner}/${repo}/pulls`;
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`
-      }
-    });
-    return response.data.length;
-  } catch (error) {
-    console.error(`Failed to fetch data for ${owner}/${repo}:`, error);
-    throw error;
-  }
-}
