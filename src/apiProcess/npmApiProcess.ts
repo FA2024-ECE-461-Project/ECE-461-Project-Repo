@@ -3,7 +3,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from a .env file into process.env
 import axios from 'axios';
-import {extractOwnerAndRepo} from '../utils/urlUtils';
+import { log } from '../logger';
 
 const NPM_API_URL = 'https://registry.npmjs.org';
 
@@ -30,7 +30,7 @@ export async function getGitHubRepoFromNpmUrl(packageName: string): Promise<stri
       throw new Error('GitHub repository URL not found in package metadata');
     }
   } catch (error) {
-    console.error(`getGitHubRepoFromNpmUrl: Failed to fetch data for ${packageName}:`, error);
+    log.error(`getGitHubRepoFromNpmUrl: Failed to fetch data for ${packageName}:`, error);
     throw error;
   }
 }
@@ -38,7 +38,7 @@ export async function getGitHubRepoFromNpmUrl(packageName: string): Promise<stri
 export async function getNpmPackageInfo(packageName: string): Promise<packageInfo> {
   try {
     // Fetch package metadata from npm registry
-    console.log(`Fetching data for ${packageName}`);
+    //log.info(`Fetching data for ${packageName}`);
     const url = `${NPM_API_URL}/${packageName}`;
     const response = await axios.get(url);
 
@@ -56,11 +56,11 @@ export async function getNpmPackageInfo(packageName: string): Promise<packageInf
       numberOfContributors: numberOfContributors
     };
 
-    console.log(`Package Info: ${JSON.stringify(packageInfo)}`);
+    log.info(`Package Info: ${JSON.stringify(packageInfo)}`);
     return packageInfo;
 
   } catch (error) {
-    console.error(`getNpmPackageInfo: Failed to fetch data for ${packageName}:`);
+    log.error(`getNpmPackageInfo: Failed to fetch data for ${packageName}:`);
     return {
       license: 'No license',
       description: 'No description',
@@ -83,7 +83,7 @@ async function getNpmPackageName(owner: string, repo: string): Promise<string | 
     const packageData = JSON.parse(packageJson);
     return packageData.name || null;
   } catch (error) {
-    console.error(`Failed to fetch package.json for ${owner}/${repo}:`, error);
+    log.error(`Failed to fetch package.json for ${owner}/${repo}:`, error);
     return null;
   }
 }

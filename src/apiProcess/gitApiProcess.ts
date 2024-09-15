@@ -1,9 +1,9 @@
 //Contains functions to interact with the GitHub API and process the responses
-
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from a .env file into process.env
 import axios, { all } from 'axios';
-// import { Buffer } from 'buffer';
+dotenv.config();
+import { log } from '../logger';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
 
@@ -93,11 +93,12 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
-    // const license = data.license?.name || 'No license';
-    let license = licenseMap[data.license?.spdx_id] || 'No license';
+
+    let license = data.license?.name || 'No license';
+    // let license = licenseMap[data.license?.spdx_id] || 'No license';
     const descrption = data.description || 'No description';
 
-    if (license === 'No license') {
+    if (license === 'No license' || license === 'Other') {
       const readmeUrl = `${GITHUB_API_URL}/${owner}/${repo}/readme`;
       const readmeResponse = await axios.get(readmeUrl, {
         headers: {
@@ -107,7 +108,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       
       //check if the readme file is empty
       if (!readmeResponse.data.content) {
-        console.error(`The README file for ${owner}/${repo} is empty`);
+        log.error(`The README file for ${owner}/${repo} is empty`);
       }
       // Decode README content from base64
       const readmeContent = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
@@ -186,11 +187,11 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       commitsData: allCommits,
       issuesData: allIssues,
     };
-    // console.log(repoDetails.license);
+    
     return repoDetails;
 
   } catch (error) {
-    console.error(`Failed to fetch data for ${owner}/${repo}:`, error);
+    log.error(`Failed to fetch data for ${owner}/${repo}:`, error);
     throw error;
   }
 }
