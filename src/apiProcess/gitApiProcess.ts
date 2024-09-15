@@ -177,7 +177,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       repo: repo,
       created_at: created_at,
       stars: stars,
-      issues: issues,
+      openissues: issues,
       forks: forks,
       license: license,
       descrption: descrption,
