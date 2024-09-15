@@ -19,11 +19,10 @@ export function calculateResponsiveness(metrics: RepoDetails): number {
     return 0;
   }
 
+  // Determine the start date for the 6-month period (or less if the repo was created less than 6 months ago)
   const repoCreationDate = new Date(metrics.created_at);
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-  // Determine the start date for the 6-month period (or less if the repo was created less than 6 months ago)
   const startDate = repoCreationDate > sixMonthsAgo ? repoCreationDate : sixMonthsAgo;
 
   // Calculate = number of issues closed in the past 6 months that were opened in the past 6 months / number of issues created in the past 6 months
@@ -49,7 +48,7 @@ export function calculateResponsiveness(metrics: RepoDetails): number {
   //console.debug(`RatioClosedToOpenIssues: ${ratioClosedToOpenIssues}`);
   //console.debug(`avgWeeksNotLostXReciprocalWeeks: ${avgWeeksNotLostXReciprocalWeeks}`);
 
-
+  const baselineAvgCommitFreq = 0.5;
 
   responsiveness = 0.5 * ratioClosedToOpenIssues + 0.25 * avgWeeksNotLostXReciprocalWeeks + 0.25 * commitFreqRatio;
   return Math.min(Math.max(responsiveness, 0), 1);

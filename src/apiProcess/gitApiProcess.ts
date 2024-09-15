@@ -2,7 +2,7 @@
 
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from a .env file into process.env
-import axios from 'axios';
+import axios, { all } from 'axios';
 // import { Buffer } from 'buffer';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
@@ -123,10 +123,10 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const perPage = 100;
     let allCommits: any[] = [];
     let allIssues: any[] = [];
-    let hasMoreCommits = true;
-    let hasMoreIssues = true;
+    //let hasMoreCommits = true;
+    //let hasMoreIssues = true;
   
-    while (hasMoreCommits) {
+    /*while (hasMoreCommits) {
       // Fetch a page of commits
       const commitsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits`, {
         params: {
@@ -147,10 +147,42 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       } else {
         page++;
       }
-    }
+    }*/
+
+    const commitsUrl = `https://api.github.com/repos/${owner}/${repo}/commits`;
+    const currentDate = new Date();
+    const thirtySixMonthsAgo = new Date();
+    thirtySixMonthsAgo.setMonth(currentDate.getMonth() - 36);
+    const startDate = created_at > thirtySixMonthsAgo ? created_at : thirtySixMonthsAgo;
+    const Commits = await axios.get(commitsUrl, {
+      params: {
+        since: startDate.toISOString(),
+        until: currentDate.toISOString(),
+      },
+      headers: {
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      },
+    });
+
+    allCommits = Commits.data;
+    //console.log(allCommits);
+
+    const issuesUrl = `https://api.github.com/repos/${owner}/${repo}/issues`;
+    const Issues = await axios.get(issuesUrl, {
+      params: {
+        state: 'all',
+        since: startDate.toISOString(),
+        until: currentDate.toISOString(),
+      },
+      headers: {
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      },
+    });
+
+    allIssues = Issues.data;
 
     // Fetch issues
-    let pageIssues = 1;
+    /*let pageIssues = 1;
     while (hasMoreIssues) {
       const issuesResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/issues`, {
         params: {
@@ -171,7 +203,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       } else {
         pageIssues++;
       }
-    }
+    }*/
 
     //return the repository details
     const repoDetails: RepoDetails = {

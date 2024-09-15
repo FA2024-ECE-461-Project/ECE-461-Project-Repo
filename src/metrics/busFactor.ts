@@ -30,11 +30,11 @@ export function calculateBusFactor(metrics: RepoDetails): number {
   const totalCommits = Object.values(commitCounts).reduce((sum, count) => sum + count, 0);
   const totalContributors = Object.keys(commitCounts).length;
   const commitsForCoreContributors = 0.1 * totalCommits;
-  const thresholdContributors = 0.25 * totalContributors;
+  const thresholdContributors = 0.5 * totalContributors;
   //console.log('Threshold:', thresholdContributors);
 
   // Filter core contributors if they have >= 10% of total commits
-  const coreContributors = Object.values(commitCounts).filter(count => count >= commitsForCoreContributors).length;
+  const coreContributors = Object.values(commitCounts).filter(count => count >= commitsForCoreContributors).length || 0;
   //console.log('Core Contributors:', coreContributors);
   const coreContributorsRatio = coreContributors / thresholdContributors;
 
