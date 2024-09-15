@@ -7,6 +7,7 @@ dotenv.config(); // Load environment variables from a .env file into process.env
 
 import { promisify } from 'util';
 import { exec } from 'child_process'; //exec spawns a shell and runs a command within that shell
+import * as igit from 'isomorphic-git';
 
 const execAsync = promisify(exec); // allowing us to use async/await with exec
 
@@ -149,6 +150,8 @@ async function _getCoverageScore(owner: string, repo: string, originalPath: stri
 * parse the results and return the score
 * */
 function _getLintScore(path: string): number {
+  // clone repo with isomorphic-git
+
   //run linter: and store output to a file
   //parse linter output
   //return score
