@@ -24,7 +24,7 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     const licenseCompatibility = calculateLicenseCompatibility(gitInfo);
     //console.log(licenseCompatibility)
     const busFactor = calculateBusFactor(gitInfo);
-    const correctnessScore = calculateCorrectness(gitInfo);
+    const correctnessScore = await calculateCorrectness(gitInfo);
 
     //calculate the NetScore
     const NetScore = correctnessScore + busFactor + licenseCompatibility + responsiveness + rampUpTime
