@@ -27,6 +27,7 @@
     "dotenv": "^16.4.5",
     "eslint": "^9.10.0",
     "fs": "^0.0.1-security",
+    "isomorphic-git": "^1.27.1",
     "ts-node": "^10.9.2",
     "tslog": "^4.9.3",
     "typescript": "^5.5.4"

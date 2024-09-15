@@ -103,6 +103,7 @@ async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
 *  @param originalPath: string - the path (location) of where the caller is stored in the repo
 *  
 * Clones the repository, runs the tests, and returns the test coverage score
+*  - this might be really slow as it clones, installs, and test. Modify approach as needed
 * */
 async function _getCoverageScore(owner: string, repo: string, originalPath: string) {
   //clone repo: may assume this repo has a test suite
