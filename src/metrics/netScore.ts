@@ -3,7 +3,7 @@ import {calculateRampUpTime} from './rampUpTime';
 import {calculateResponsiveness} from './responsiveness';
 import {calculateLicenseCompatibility} from './licenseCompatibility';
 import {calculateBusFactor} from './busFactor';
-import {calculateCorrectness} from './correctness';
+// import {calculateCorrectness} from './correctness';
 
 export async function GetNetScore(owner: string, repo: string, url: string): Promise<any> {
   try {
@@ -24,7 +24,8 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     const licenseCompatibility = calculateLicenseCompatibility(gitInfo);
     //console.log(licenseCompatibility)
     const busFactor = calculateBusFactor(gitInfo);
-    const correctnessScore = await calculateCorrectness(gitInfo);
+    // const correctnessScore = await calculateCorrectness(gitInfo);
+    const correctnessScore = 0.5;
 
     //calculate the NetScore
     const NetScore = correctnessScore + busFactor + licenseCompatibility + responsiveness + rampUpTime
