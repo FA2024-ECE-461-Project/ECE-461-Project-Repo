@@ -2,7 +2,7 @@
 
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from a .env file into process.env
-import axios from 'axios';
+import axios, { all } from 'axios';
 // import { Buffer } from 'buffer';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
@@ -11,12 +11,15 @@ const GITHUB_API_URL = 'https://api.github.com/repos';
 export interface RepoDetails {
   owner: string;
   repo: string;
+  created_at: string;
   stars: number;
-  issues: number;
+  openissues: number;
   forks: number;
   pullRequests: number;
   license: string;
-  discrption: string;
+  descrption: string;
+  commitsData: any[];
+  issuesData: any[];
 }
 
 // License map
@@ -84,13 +87,16 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
 
     //get data from github
     const data = response.data;
+    //console.log(data);
+    const created_at = data.created_at;
     const stars = data.stargazers_count;
     const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
+
     let license = data.license?.name || 'No license';
     // let license = licenseMap[data.license?.spdx_id] || 'No license';
-    const discrption = data.description || 'No description';
+    const descrption = data.description || 'No description';
 
     if (license === 'No license' || license === 'Other') {
       const readmeUrl = `${GITHUB_API_URL}/${owner}/${repo}/readme`;
@@ -112,16 +118,74 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       }
     }
 
+    const currentDate = new Date();
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
+    const startDate = created_at > sixMonthsAgo ? created_at : sixMonthsAgo;
+
+    const perPage = 100;
+    let allCommits: any[] = [];
+    let allIssues: any[] = [];
+  
+    // Fetch latest 300 commits
+    for (let page = 1; page <= 3; page++) { 
+      // Fetch a page of 100 commits
+      const commitsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits`, {
+        params: {
+          per_page: perPage,
+          page: page,
+        },
+        headers: {
+          Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      });
+  
+      const commits = commitsResponse.data;
+      allCommits = allCommits.concat(commits);
+  
+      // Check if there are more commits to fetch
+      if (commits.length < perPage || new Date(commits[commits.length - 1].commit.author.date) < startDate) {
+        break;
+      }
+    }
+
+    // Fetch latest 300 issues
+    for (let page = 1; page <= 3; page++) {
+      const issuesResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/issues`, {
+        params: {
+          state: 'all',
+          per_page: perPage,
+          page: page,
+        },
+        headers: {
+          Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      });
+      const issues = issuesResponse.data;
+      allIssues = allIssues.concat(issues);
+  
+      // Check if there are more commits to fetch
+      //console.log(pageIssues);
+      if (issues.length < perPage || new Date(issues[issues.length - 1].created_at) < startDate) {
+        break;
+      }
+    }
+
+    //console.log(allIssues.length);
+
     //return the repository details
     const repoDetails: RepoDetails = {
       owner: owner,
       repo: repo,
+      created_at: created_at,
       stars: stars,
-      issues: issues,
+      openissues: issues,
       forks: forks,
       pullRequests: pullRequests,
       license: license,
-      discrption: discrption
+      descrption: descrption,
+      commitsData: allCommits,
+      issuesData: allIssues,
     };
     
     return repoDetails;
