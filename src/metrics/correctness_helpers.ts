@@ -122,7 +122,7 @@ async function _getCoverageScore(owner: string, repo: string, originalPath: stri
 }
 
 function _getLintScore(path: string){
-  //run linter
+  //run linter: and store output to a file
   //parse linter output
   //return score
 }
