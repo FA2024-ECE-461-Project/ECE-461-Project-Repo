@@ -1,9 +1,8 @@
 //Contains functions to interact with the GitHub API and process the responses
-
 import * as dotenv from 'dotenv';
-dotenv.config(); // Load environment variables from a .env file into process.env
+dotenv.config();
 import axios from 'axios';
-// import { Buffer } from 'buffer';
+import { log } from '../logger';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
 
@@ -102,7 +101,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       
       //check if the readme file is empty
       if (!readmeResponse.data.content) {
-        console.error(`The README file for ${owner}/${repo} is empty`);
+        log.error(`The README file for ${owner}/${repo} is empty`);
       }
       // Decode README content from base64
       const readmeContent = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
@@ -127,7 +126,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     return repoDetails;
 
   } catch (error) {
-    console.error(`Failed to fetch data for ${owner}/${repo}:`, error);
+    log.error(`Failed to fetch data for ${owner}/${repo}:`, error);
     throw error;
   }
 }
