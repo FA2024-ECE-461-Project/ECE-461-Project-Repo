@@ -4,4 +4,3 @@ https://github.com/nullivex/nodist
 https://github.com/lodash/lodash
 https://www.npmjs.com/package/browserify
 https://github.com/smoltcp-rs/smoltcp
-https://github.com/rust-lang/rust
