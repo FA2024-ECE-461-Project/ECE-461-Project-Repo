@@ -83,12 +83,8 @@ export async function processUrl(UrlType: 'github' | 'npm' | 'invalid', url: str
     const giturl = await getGitHubRepoFromNpmUrl(packageName);
     const httpsUrl = convertSshToHttps(giturl);
     ({ owner, repo } = extractOwnerAndRepo(httpsUrl ?? ""));
-    // console.log(httpsUrl);
-    // console.log(`Owner: ${owner}, Repo: ${repo}\n\n`);
   } else if (UrlType === 'github') {
     ({ owner, repo } = extractOwnerAndRepo(url));
-    // console.log(url);
-    // console.log(`Owner: ${owner}, Repo: ${repo}\n\n`);
   }
 
   return { owner, repo };
