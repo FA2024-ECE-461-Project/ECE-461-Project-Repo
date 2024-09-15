@@ -7,7 +7,7 @@ dotenv.config(); // Load environment variables from a .env file into process.env
 
 import { promisify } from 'util';
 import { exec } from 'child_process'; //exec spawns a shell and runs a command within that shell
-import * as igit from 'isomorphic-git';
+import { cloneRepo, removeRepo } from './clone_repo';
 
 const execAsync = promisify(exec); // allowing us to use async/await with exec
 
@@ -59,7 +59,6 @@ async function _hasTestSuite(owner: string, repo: string): Promise<boolean> {
 * a helper function that makes an API call to retrieve total number of issues and
 * number of open issues for a repository
 * */
-
 async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
   const repoUrl = `https://api.github.com/repos/${owner}/${repo}`;
   const closedIssuesUrl = `https://api.github.com/search/issues?q=repo:${owner}/${repo}+type:issue+state:closed`;
@@ -81,9 +80,7 @@ async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
           'Authorization': `token ${process.env.GITHUB_TOKEN}`
         },
       }),
-    ]
-
-    )
+    ]);
   
     // Extract the total number of issues (both open and closed)
     const result: GitHubIssues = {
@@ -103,45 +100,16 @@ async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
 *  @param repo: string - the repository name
 *  @param originalPath: string - the path (location) of where the caller is stored in the repo
 *  
-* Clones the repository, runs the tests, and returns the test coverage score
-*  - this might be really slow as it clones, installs, and test. Modify approach as needed
+* Clones the repository using isomorphic-git, walks the directory tree to find the test files,
 * */
 async function _getCoverageScore(owner: string, repo: string, originalPath: string) {
-  //clone repo: may assume this repo has a test suite
-  const repoUrl = `https://github.com/${owner}/${repo}.git`;
-  const repoDir = path.join('/tmp', repo);
+  // clone the repository
+  const gitHubURL = `https://github.com/${owner}/${repo}`;
+  const clonedPath = await cloneRepo(gitHubURL);
 
-  // Step 1: Clone the repository
-  await execAsync(`git clone ${repoUrl} ${repoDir}`);
+  // walk the directory tree to find the test files
+  
 
-  //Step 2. run tests
-  // Change working directory to the cloned repository
-  process.chdir(repoDir);
-
-  // Step 3: Install dependencies
-  await execAsync('npm install');
-
-  // Step 4: Run tests and generate coverage report
-  await execAsync('npx jest --coverage'); // Assuming Jest is used for testing
-
-  // Step 5: Parse the coverage report
-  const coverageReportPath = path.join(repoDir, 'coverage', 'lcov-report', 'index.html');
-  const coverageReport = fs.readFileSync(coverageReportPath, 'utf-8');
-  const coverageMatch = coverageReport.match(/<span class="strong">All files<\/span>[\s\S]*?<span class="strong">([\d.]+)%<\/span>/);
-
-  if (!coverageMatch) {
-    // Change back to original directory
-    process.chdir(originalPath);
-    throw new Error('Failed to parse coverage report');
-  }
-
-  const coverageScore = parseFloat(coverageMatch[1]);
-
-  // Change back to original directory
-  process.chdir(originalPath);
-
-  // Step 6: Return the coverage score
-  return coverageScore;
 }
 
 /* @param path: string - the path of the repository
