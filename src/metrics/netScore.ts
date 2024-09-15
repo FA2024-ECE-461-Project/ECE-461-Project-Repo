@@ -19,7 +19,7 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     // console.log(`The repository ${owner}/${repo} has ${gitInfo.description} Description.`);
 
     // Get metrics values
-    const rampUpTime = calculateRampUpTime(gitInfo);
+    const rampUpTime = await calculateRampUpTime(gitInfo);
     const responsiveness = calculateResponsiveness(gitInfo);
     const licenseCompatibility = calculateLicenseCompatibility(gitInfo);
     //console.log(licenseCompatibility)
