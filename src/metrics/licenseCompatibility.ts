@@ -29,7 +29,7 @@ const licenseScoreMap: { [key: string]: number } = {
   "BSD 4-clause Original or Old License": 0,
 
   "0BSD": 1,
-  "BSD Zero-Clause License": 1,
+  "BSD Zero Clause License": 1,
 
   "CC": 0,
   "Creative Commons License Family": 0,

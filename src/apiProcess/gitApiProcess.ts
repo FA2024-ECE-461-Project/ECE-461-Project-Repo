@@ -93,11 +93,12 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
-    // const license = data.license?.name || 'No license';
-    let license = licenseMap[data.license?.spdx_id] || 'No license';
+
+    let license = data.license?.name || 'No license';
+    // let license = licenseMap[data.license?.spdx_id] || 'No license';
     const descrption = data.description || 'No description';
 
-    if (license === 'No license') {
+    if (license === 'No license' || license === 'Other') {
       const readmeUrl = `${GITHUB_API_URL}/${owner}/${repo}/readme`;
       const readmeResponse = await axios.get(readmeUrl, {
         headers: {
@@ -186,7 +187,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       commitsData: allCommits,
       issuesData: allIssues,
     };
-    // console.log(repoDetails.license);
+    
     return repoDetails;
 
   } catch (error) {
