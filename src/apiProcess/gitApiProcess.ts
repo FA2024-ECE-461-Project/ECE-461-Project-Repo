@@ -158,6 +158,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       params: {
         since: startDate.toISOString(),
         until: currentDate.toISOString(),
+        per_page: perPage,
       },
       headers: {
         Authorization: `token ${process.env.GITHUB_TOKEN}`,
@@ -165,7 +166,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     });
 
     allCommits = Commits.data;
-    //console.log(allCommits);
+    console.log(allCommits.length);
 
     const issuesUrl = `https://api.github.com/repos/${owner}/${repo}/issues`;
     const Issues = await axios.get(issuesUrl, {
@@ -173,6 +174,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
         state: 'all',
         since: startDate.toISOString(),
         until: currentDate.toISOString(),
+        per_page: perPage,
       },
       headers: {
         Authorization: `token ${process.env.GITHUB_TOKEN}`,
