@@ -1,9 +1,15 @@
 //calculate correctness
 import axios from 'axios';
+import * as fs from 'fs';
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 dotenv.config(); // Load environment variables from a .env file into process.env
 
+import { promisify } from 'util';
+import { exec } from 'child_process'; //exec spawns a shell and runs a command within that shell
 import {RepoDetails} from '../apiProcess/gitApiProcess';
+
+const execAsync = promisify(exec); // allowing us to use async/await with exec
 
 interface GitHubIssues {
   open_issues_count: number;  // Total number of open issues
@@ -78,23 +84,71 @@ async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
   }
 }
 
-async function calculateCorrectness(owner: string, repo: string): Promise<number> {
+async function _getCoverageScore(owner: string, repo: string, originalPath: string) {
+  //clone repo: may assume this repo has a test suite
+  const repoUrl = `https://github.com/${owner}/${repo}.git`;
+  const repoDir = path.join('/tmp', repo);
+
+  // Step 1: Clone the repository
+  await execAsync(`git clone ${repoUrl} ${repoDir}`);
+
+  //Step 2. run tests
+  // Change working directory to the cloned repository
+  process.chdir(repoDir);
+
+  // Step 3: Install dependencies
+  await execAsync('npm install');
+
+  // Step 4: Run tests and generate coverage report
+  await execAsync('npx jest --coverage'); // Assuming Jest is used for testing
+
+  // Step 5: Parse the coverage report
+  const coverageReportPath = path.join(repoDir, 'coverage', 'lcov-report', 'index.html');
+  const coverageReport = fs.readFileSync(coverageReportPath, 'utf-8');
+  const coverageMatch = coverageReport.match(/<span class="strong">All files<\/span>[\s\S]*?<span class="strong">([\d.]+)%<\/span>/);
+
+  if (!coverageMatch) {
+    // Change back to original directory
+    process.chdir(originalPath);
+    throw new Error('Failed to parse coverage report');
+  }
+
+  const coverageScore = parseFloat(coverageMatch[1]);
+
+  // Change back to original directory
+  process.chdir(originalPath);
+
+  // Step 6: Return the coverage score
+  return coverageScore;
+}
+
+function _getLintScore(path: string){
+  //run linter
+  //parse linter output
+  //return score
+}
+
+async function calculateCorrectness(metric: RepoDetails): Promise<number> {
   //fetch all information needed (add onto it if needed)
   const [issueInfo, hasTestSuite]: [GitHubIssues, Boolean] = await Promise.all([
-    _getIssues(owner, repo),
-    _hasTestSuite(owner, repo)
+    _getIssues(metric.owner, metric.repo),
+    _hasTestSuite(metric.owner, metric.repo)
   ]);
 
   // compute test coverage score: dynamic analysis
   // I am assuming all tests are created with jest
   let testCoverageScore = 0;
   if(hasTestSuite){
-    // run test locally using jset to see coverage
-    
-    //set testCoverageScore to it
+    // getting current path, might be troublesome later if this function is called elsewhere
+    let currentPath = process.cwd();
+    currentPath = path.basename(currentPath);
+    testCoverageScore = await _getCoverageScore(metric.owner, metric.repo, currentPath);
   }
-
   // compute static analysis score
+
+
+  //remove the cloned repo
+  await execAsync(`rm -rf /tmp/${metric.repo}`);
 
   // compute issue ratio
   const issueRatio = issueInfo.open_issues_count / issueInfo.total_issues_count;
