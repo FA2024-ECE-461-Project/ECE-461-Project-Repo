@@ -16,6 +16,13 @@ interface GitHubIssues {
   // add more fields if needed
 }
 
+/* @param owner: string - the owner of the repository
+*  @param repo: string - the repository name
+*  @returns boolean - if the repository has a test suite
+* 
+* a helper function that makes an API call to 
+* the GitHub API to check if a repository has a test suite
+*/
 async function _hasTestSuite(owner: string, repo: string): Promise<boolean> {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents`;
   const response = await fetch(url);
@@ -43,6 +50,14 @@ async function _hasTestSuite(owner: string, repo: string): Promise<boolean> {
 
   return false;
 }
+
+/* @param owner: string - the owner of the repository
+*  @param repo: string - the repository name
+*  @returns GitHubIssues - the total number of issues and open issues
+* 
+* a helper function that makes an API call to retrieve total number of issues and
+* number of open issues for a repository
+* */
 
 async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
   const repoUrl = `https://api.github.com/repos/${owner}/${repo}`;
@@ -83,6 +98,12 @@ async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
   }
 }
 
+/* @param owner: string - the owner of the repository
+*  @param repo: string - the repository name
+*  @param originalPath: string - the path (location) of where the caller is stored in the repo
+*  
+* Clones the repository, runs the tests, and returns the test coverage score
+* */
 async function _getCoverageScore(owner: string, repo: string, originalPath: string) {
   //clone repo: may assume this repo has a test suite
   const repoUrl = `https://github.com/${owner}/${repo}.git`;
@@ -121,10 +142,16 @@ async function _getCoverageScore(owner: string, repo: string, originalPath: stri
   return coverageScore;
 }
 
-function _getLintScore(path: string){
+/* @param path: string - the path of the repository
+*  @returns number - the lint score of the repository
+* clone the repo, run the linter, store results to a file,
+* parse the results and return the score
+* */
+function _getLintScore(path: string): number {
   //run linter: and store output to a file
   //parse linter output
   //return score
+  return 0;
 }
 
 export { GitHubIssues, _hasTestSuite, _getIssues, _getCoverageScore, _getLintScore };
