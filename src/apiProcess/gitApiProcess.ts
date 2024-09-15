@@ -11,12 +11,15 @@ const GITHUB_API_URL = 'https://api.github.com/repos';
 export interface RepoDetails {
   owner: string;
   repo: string;
+  created_at: string;
   stars: number;
-  issues: number;
+  openissues: number;
   forks: number;
   pullRequests: number;
   license: string;
-  discrption: string;
+  descrption: string;
+  commitsData: any[];
+  issuesData: any[];
 }
 
 // License map
@@ -71,6 +74,7 @@ function extractLicenseFromReadme(readmeContent: string): string | null {
 
   return null;
 }
+
 // get the GitHub repository details
 export async function getGithubInfo(owner: string, repo: string): Promise<RepoDetails> {
   try {
@@ -83,13 +87,15 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
 
     //get data from github
     const data = response.data;
+    //console.log(data);
+    const created_at = data.created_at;
     const stars = data.stargazers_count;
     const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
     // const license = data.license?.name || 'No license';
     let license = licenseMap[data.license?.spdx_id] || 'No license';
-    const discrption = data.description || 'No description';
+    const descrption = data.description || 'No description';
 
     if (license === 'No license') {
       const readmeUrl = `${GITHUB_API_URL}/${owner}/${repo}/readme`;
@@ -111,16 +117,75 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       }
     }
 
+
+    // Get commits data (pagination)
+    let page = 1;
+    const perPage = 100;
+    let allCommits: any[] = [];
+    let allIssues: any[] = [];
+    let hasMoreCommits = true;
+    let hasMoreIssues = true;
+  
+    while (hasMoreCommits) {
+      // Fetch a page of commits
+      const commitsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits`, {
+        params: {
+          per_page: perPage,
+          page: page,
+        },
+        headers: {
+          Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      });
+  
+      const commits = commitsResponse.data;
+      allCommits = allCommits.concat(commits);
+  
+      // Check if there are more commits to fetch
+      if (commits.length < perPage) {
+        hasMoreCommits = false;
+      } else {
+        page++;
+      }
+    }
+
+    // Fetch issues
+    let pageIssues = 1;
+    while (hasMoreIssues) {
+      const issuesResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/issues`, {
+        params: {
+          state: 'all',
+          per_page: perPage,
+          page: pageIssues,
+        },
+        headers: {
+          Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      });
+      const issues = issuesResponse.data;
+      allIssues = allIssues.concat(issues);
+  
+      // Check if there are more commits to fetch
+      if (issues.length < perPage) {
+        hasMoreIssues = false;
+      } else {
+        pageIssues++;
+      }
+    }
+
     //return the repository details
     const repoDetails: RepoDetails = {
       owner: owner,
       repo: repo,
+      created_at: created_at,
       stars: stars,
-      issues: issues,
+      openissues: issues,
       forks: forks,
       pullRequests: pullRequests,
       license: license,
-      discrption: discrption
+      descrption: descrption,
+      commitsData: allCommits,
+      issuesData: allIssues,
     };
     // console.log(repoDetails.license);
     return repoDetails;
