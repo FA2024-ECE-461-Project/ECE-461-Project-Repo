@@ -119,6 +119,11 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
 
 
     // Get commits data (pagination)
+    const currentDate = new Date();
+    const thirtySixMonthsAgo = new Date();
+    thirtySixMonthsAgo.setMonth(currentDate.getMonth() - 36);
+    const startDate = created_at > thirtySixMonthsAgo ? created_at : thirtySixMonthsAgo;
+
     let page = 1;
     const perPage = 100;
     let allCommits: any[] = [];
@@ -142,7 +147,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       allCommits = allCommits.concat(commits);
   
       // Check if there are more commits to fetch
-      if (commits.length < perPage) {
+      if (commits.length < perPage || new Date(commits[commits.length - 1].commit.author.date) < startDate) {
         hasMoreCommits = false;
       } else {
         page++;
@@ -150,10 +155,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     }*/
 
     const commitsUrl = `https://api.github.com/repos/${owner}/${repo}/commits`;
-    const currentDate = new Date();
-    const thirtySixMonthsAgo = new Date();
-    thirtySixMonthsAgo.setMonth(currentDate.getMonth() - 36);
-    const startDate = created_at > thirtySixMonthsAgo ? created_at : thirtySixMonthsAgo;
+
     const Commits = await axios.get(commitsUrl, {
       params: {
         since: startDate.toISOString(),
@@ -166,7 +168,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     });
 
     allCommits = Commits.data;
-    console.log(allCommits.length);
+    //console.log(allCommits.length);
 
     const issuesUrl = `https://api.github.com/repos/${owner}/${repo}/issues`;
     const Issues = await axios.get(issuesUrl, {
@@ -200,12 +202,15 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       allIssues = allIssues.concat(issues);
   
       // Check if there are more commits to fetch
-      if (issues.length < perPage) {
+      console.log(pageIssues);
+      if (issues.length < perPage || new Date(issues[issues.length - 1].created_at) < startDate) {
         hasMoreIssues = false;
       } else {
         pageIssues++;
       }
-    }*/
+    }
+
+    console.log(allIssues.length);*/
 
     //return the repository details
     const repoDetails: RepoDetails = {
