@@ -48,3 +48,5 @@ cloneRepo(githubUrl).then(repoPath => {
 }).catch(error => {
   console.error('Error:', error.message);
 });
+
+export { cloneRepo };
