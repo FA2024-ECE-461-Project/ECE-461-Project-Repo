@@ -3,6 +3,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from a .env file into process.env
 import axios from 'axios';
+// import { differenceInMonths, subMonths } from 'date-fns';
 // import { Buffer } from 'buffer';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
@@ -12,9 +13,7 @@ export interface RepoDetails {
   owner: string;
   repo: string;
   stars: number;
-  issues: number;
   forks: number;
-  pullRequests: number;
   license: string;
   discrption: string;
 }
@@ -85,7 +84,6 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     //get data from github
     const data = response.data;
     const stars = data.stargazers_count;
-    const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
     let license = data.license?.name || 'No license';
@@ -117,9 +115,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       owner: owner,
       repo: repo,
       stars: stars,
-      issues: issues,
       forks: forks,
-      pullRequests: pullRequests,
       license: license,
       discrption: discrption
     };
