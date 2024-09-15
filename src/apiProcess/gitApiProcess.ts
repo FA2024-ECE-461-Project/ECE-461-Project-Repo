@@ -117,22 +117,18 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       }
     }
 
-
-    // Get commits data (pagination)
     const currentDate = new Date();
-    const thirtySixMonthsAgo = new Date();
-    thirtySixMonthsAgo.setMonth(currentDate.getMonth() - 36);
-    const startDate = created_at > thirtySixMonthsAgo ? created_at : thirtySixMonthsAgo;
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
+    const startDate = created_at > sixMonthsAgo ? created_at : sixMonthsAgo;
 
-    let page = 1;
     const perPage = 100;
     let allCommits: any[] = [];
     let allIssues: any[] = [];
-    //let hasMoreCommits = true;
-    //let hasMoreIssues = true;
   
-    /*while (hasMoreCommits) {
-      // Fetch a page of commits
+    // Fetch latest 300 commits
+    for (let page = 1; page <= 3; page++) { 
+      // Fetch a page of 100 commits
       const commitsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits`, {
         params: {
           per_page: perPage,
@@ -148,51 +144,17 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
   
       // Check if there are more commits to fetch
       if (commits.length < perPage || new Date(commits[commits.length - 1].commit.author.date) < startDate) {
-        hasMoreCommits = false;
-      } else {
-        page++;
+        break;
       }
-    }*/
+    }
 
-    const commitsUrl = `https://api.github.com/repos/${owner}/${repo}/commits`;
-
-    const Commits = await axios.get(commitsUrl, {
-      params: {
-        since: startDate.toISOString(),
-        until: currentDate.toISOString(),
-        per_page: perPage,
-      },
-      headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`,
-      },
-    });
-
-    allCommits = Commits.data;
-    //console.log(allCommits.length);
-
-    const issuesUrl = `https://api.github.com/repos/${owner}/${repo}/issues`;
-    const Issues = await axios.get(issuesUrl, {
-      params: {
-        state: 'all',
-        since: startDate.toISOString(),
-        until: currentDate.toISOString(),
-        per_page: perPage,
-      },
-      headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`,
-      },
-    });
-
-    allIssues = Issues.data;
-
-    // Fetch issues
-    /*let pageIssues = 1;
-    while (hasMoreIssues) {
+    // Fetch latest 300 issues
+    for (let page = 1; page <= 3; page++) {
       const issuesResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/issues`, {
         params: {
           state: 'all',
           per_page: perPage,
-          page: pageIssues,
+          page: page,
         },
         headers: {
           Authorization: `token ${process.env.GITHUB_TOKEN}`,
@@ -202,15 +164,13 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       allIssues = allIssues.concat(issues);
   
       // Check if there are more commits to fetch
-      console.log(pageIssues);
+      //console.log(pageIssues);
       if (issues.length < perPage || new Date(issues[issues.length - 1].created_at) < startDate) {
-        hasMoreIssues = false;
-      } else {
-        pageIssues++;
+        break;
       }
     }
 
-    console.log(allIssues.length);*/
+    //console.log(allIssues.length);
 
     //return the repository details
     const repoDetails: RepoDetails = {
