@@ -40,7 +40,7 @@ export function convertSshToHttps(sshUrl: string): string {
 }
 
 export function extractOwnerAndRepo(gitHubUrl: string): RepoInfo {
-  const [owner, repo] = gitHubUrl.split('/').slice(-2);
+  const [owner, repo] = gitHubUrl.split('/').slice(-2); //split url using '/' as delimiter and extract the last 2 elements
   if (!owner || !repo) {
     throw new Error('Invalid GitHub URL');
   }
