@@ -7,6 +7,11 @@ import { log } from '../logger';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
 
+if(!process.env.GITHUB_TOKEN) {
+  log.error('GITHUB_TOKEN environment variable not set');
+  process.exit(1);
+}
+
 //class for the repository details
 export interface RepoDetails {
   owner: string;
