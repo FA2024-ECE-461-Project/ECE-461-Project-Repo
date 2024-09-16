@@ -31,15 +31,16 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     // console.log(`The repository ${owner}/${repo} has ${gitInfo.description} Description.`);
 
     // Get metrics values
-    const rampUpTime = await measureLatency(calculateBusFactor, gitInfo) //calculateRampUpTime(gitInfo);
+    const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo) //calculateRampUpTime(gitInfo);
     const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
     const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
     //console.log(licenseCompatibility)
     const busFactor = await measureLatency(calculateBusFactor,gitInfo);
-    const correctnessScore = await measureLatency(calculateCorrectness,gitInfo);
+    // const correctnessScore = await measureLatency(calculateCorrectness,gitInfo);
+    const correctnessScore = 0.5
 
     //calculate the NetScore
-    const NetScore = correctnessScore.value + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
+    const NetScore = correctnessScore + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
 
     // Return a JSON object with the metrics values
     return {
@@ -48,8 +49,8 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
       NetScore_Latency: 100, // Example latency value, replace with actual if available
       RampUp: rampUpTime.value,
       RampUp_Latency: rampUpTime.latency, // Example latency value, replace with actual if available
-      Correctness: correctnessScore.value,
-      Correctness_Latency: correctnessScore.latency, // Example latency value, replace with actual if available
+      // Correctness: correctnessScore.value,
+      // Correctness_Latency: correctnessScore.latency, // Example latency value, replace with actual if available
       BusFactor: busFactor.value,
       BusFactor_Latency: busFactor.latency, // Example latency value, replace with actual if available
       ResponsiveMaintainer: responsiveness.value,
