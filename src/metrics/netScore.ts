@@ -4,6 +4,18 @@ import {calculateResponsiveness} from './responsiveness';
 import {calculateLicenseCompatibility} from './licenseCompatibility';
 import {calculateBusFactor} from './busFactor';
 import {calculateCorrectness} from './correctness';
+import { promisify } from 'util';
+
+async function measureLatency<T, A extends any[]>(
+  fn: (...args: A) => Promise<T> | T,
+  ...args: A
+): Promise<{ value: T; latency: number }> {
+  const startTime = process.hrtime();
+  const value = await fn(...args);
+  const elapsedTime = process.hrtime(startTime);
+  const latency = elapsedTime[0] + elapsedTime[1] / 1e9; // Convert to seconds
+  return { value, latency };
+}
 
 export async function GetNetScore(owner: string, repo: string, url: string): Promise<any> {
   try {
@@ -19,34 +31,35 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     // console.log(`The repository ${owner}/${repo} has ${gitInfo.description} Description.`);
 
     // Get metrics values
-    const rampUpTime = calculateRampUpTime(gitInfo);
-    const responsiveness = calculateResponsiveness(gitInfo);
-    const licenseCompatibility = calculateLicenseCompatibility(gitInfo);
+    const rampUpTime = await measureLatency(calculateBusFactor, gitInfo) //calculateRampUpTime(gitInfo);
+    const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
+    const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
     //console.log(licenseCompatibility)
-    const busFactor = calculateBusFactor(gitInfo);
-    const correctnessScore = calculateCorrectness(gitInfo);
+    const busFactor = await measureLatency(calculateBusFactor,gitInfo);
+    const correctnessScore = await measureLatency(calculateCorrectness,gitInfo);
 
     //calculate the NetScore
-    const NetScore = correctnessScore + busFactor + licenseCompatibility + responsiveness + rampUpTime
+    const NetScore = correctnessScore.value + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
 
     // Return a JSON object with the metrics values
     return {
       URL: url,
       NetScore: NetScore,
-      NetScore_Latency: 0.033, // Example latency value, replace with actual if available
-      RampUp: rampUpTime,
-      RampUp_Latency: 0.023, // Example latency value, replace with actual if available
-      Correctness: correctnessScore,
-      Correctness_Latency: 0.005, // Example latency value, replace with actual if available
-      BusFactor: busFactor,
-      BusFactor_Latency: 0.002, // Example latency value, replace with actual if available
-      ResponsiveMaintainer: responsiveness,
-      ResponsiveMaintainer_Latency: 0.002, // Example latency value, replace with actual if available
-      License: licenseCompatibility,
-      License_Latency: 0.001 // Example latency value, replace with actual if available
+      NetScore_Latency: 100, // Example latency value, replace with actual if available
+      RampUp: rampUpTime.value,
+      RampUp_Latency: rampUpTime.latency, // Example latency value, replace with actual if available
+      Correctness: correctnessScore.value,
+      Correctness_Latency: correctnessScore.latency, // Example latency value, replace with actual if available
+      BusFactor: busFactor.value,
+      BusFactor_Latency: busFactor.latency, // Example latency value, replace with actual if available
+      ResponsiveMaintainer: responsiveness.value,
+      ResponsiveMaintainer_Latency: responsiveness.latency, // Example latency value, replace with actual if available
+      License: licenseCompatibility.value,
+      License_Latency: licenseCompatibility.latency // Example latency value, replace with actual if available
     };
   } catch (error) {
     console.error('GetNetScore: Failed to get repository info:', error);
     return null;
   }
 }
+
