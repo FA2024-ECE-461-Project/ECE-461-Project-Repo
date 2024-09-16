@@ -10,14 +10,14 @@ export function calculateResponsiveness(metrics: RepoDetails): number {
   let responsiveness = 0;
 
   // Check if there are any issues available
-  if (!metrics.issuesData) {
-    console.error('No issues data available for calculating responsiveness');
+  if (metrics.issuesData.length == 0) {
+    //console.error('No issues data available for calculating responsiveness');
     return 0;
   }
 
   // Check if there are any commits available
-  if (!metrics.commitsData) {
-    console.error('No commits data available for calculating responsiveness');
+  if (metrics.commitsData.length == 0) {
+    //console.error('No commits data available for calculating responsiveness');
     return 0;
   }
 

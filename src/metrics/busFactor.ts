@@ -8,8 +8,8 @@ import {RepoDetails} from '../apiProcess/gitApiProcess';
 export function calculateBusFactor(metrics: RepoDetails): number {
   
   // Check if there are any commits available
-  if (!metrics.commitsData) {
-    console.error('No commits data available for calculating bus factor');
+  if (metrics.commitsData.length == 0) {
+    //console.error('No commits data available for calculating bus factor');
     return 0;
   }
 
