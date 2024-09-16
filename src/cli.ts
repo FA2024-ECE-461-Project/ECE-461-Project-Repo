@@ -27,8 +27,10 @@ export async function cli() {
     const results = [];
 
     // Process each URL
-    for (const url of urls) {
+    for (let url of urls) {
       const urlType = checkUrlType(url);
+      const rawUrl = url;
+      url = rawUrl.trim(); 
       try {
         // Process URL to get owner and repo
         const { owner, repo } = await processUrl(urlType, url);

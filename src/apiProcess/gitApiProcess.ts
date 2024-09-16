@@ -19,7 +19,6 @@ export interface RepoDetails {
   stars: number;
   openissues: number;
   forks: number;
-  pullRequests: number;
   license: string;
   descrption: string;
   commitsData: any[];
@@ -94,7 +93,6 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     //console.log(data);
     const created_at = data.created_at;
     const stars = data.stargazers_count;
-    const issues = data.open_issues_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
 
@@ -183,9 +181,8 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       repo: repo,
       created_at: created_at,
       stars: stars,
-      openissues: issues,
+      openissues: allIssues.length,
       forks: forks,
-      pullRequests: pullRequests,
       license: license,
       descrption: descrption,
       commitsData: allCommits,
