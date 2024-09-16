@@ -1,35 +1,9 @@
-// //Calcualte Ramp Up Time
-// import {RepoDetails} from '../apiProcess/gitApiProcess';
-
-
-// export function calculateRampUpTime(metrics: RepoDetails): number {
-    
-//     return 0;
-//   }
-// Calculate Ramp Up Time
 import { RepoDetails } from '../apiProcess/gitApiProcess';
-import * as git from 'isomorphic-git';
-import * as http from 'isomorphic-git/http/node';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export async function calculateRampUpTime(metrics: RepoDetails): Promise<number> {
-  // Construct the repo URL from owner and repo
-  if (!metrics.owner || !metrics.repo) {
-    console.error('Repository owner or name is missing.');
-    return 0;
-  }
-
-  const repoUrl = `https://github.com/${metrics.owner}/${metrics.repo}.git`;
-  console.log('Cloning repository:', repoUrl);
-
-  const dir = path.join(process.cwd(), 'tmp', `repo-${Date.now()}`);
-  fs.mkdirSync(dir, { recursive: true });
-
+export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Promise<number> {
   try {
-    // Clone the repository
-    await git.clone({ fs, http, dir, url: repoUrl });
-
     // Analyze the repository
     let score = 0;
 
@@ -49,9 +23,6 @@ export async function calculateRampUpTime(metrics: RepoDetails): Promise<number>
   } catch (error) {
     console.error('Error calculating ramp-up time:', error);
     return 0;
-  } finally {
-    // Clean up: delete the cloned repository
-    fs.rmSync(dir, { recursive: true, force: true });
   }
 }
 
@@ -108,22 +79,41 @@ function calculateCodeCommentRatio(dir: string): number {
 }
 
 // Helper function to get all files in the repository directory
-function getAllFiles(dir: string, files?: string[]): string[] {
+function getAllFiles(dir: string, files?: string[], visitedPaths?: Set<string>): string[] {
   files = files || [];
+  visitedPaths = visitedPaths || new Set();
+
   const entries = fs.readdirSync(dir);
 
   for (const entry of entries) {
     const fullPath = path.join(dir, entry);
-    const stats = fs.statSync(fullPath);
 
-    if (stats.isDirectory()) {
-      getAllFiles(fullPath, files);
-    } else {
+    // Check if we've already visited this path to avoid cycles
+    if (visitedPaths.has(fullPath)) {
+      continue;
+    }
+    visitedPaths.add(fullPath);
+
+    let stats;
+    try {
+      stats = fs.lstatSync(fullPath);
+    } catch (err) {
+      console.error(`Error reading file stats for ${fullPath}: ${err}`);
+      continue; // Skip this entry if there's an error
+    }
+
+    if (stats.isSymbolicLink()) {
+      // Skip symbolic links to avoid infinite loops
+      continue;
+    } else if (stats.isDirectory()) {
+      getAllFiles(fullPath, files, visitedPaths);
+    } else if (stats.isFile()) {
       files.push(fullPath);
     }
   }
   return files;
 }
+
 
 // Function to count the number of comment lines in code files
 function countCommentLines(lines: string[], ext: string): number {
