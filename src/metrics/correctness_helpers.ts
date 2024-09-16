@@ -100,17 +100,24 @@ async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
 *  @returns string | null - the path of the test folder or null if not found
 * */
 
-async function __findTestFolder(clonedPath: string): Promise<string | null> {
+// recursive function to find the test folder
+// TS recursion to make this method more complete (cover names beyond those in the tuple)
+async function __findFolder(clonedPath: string, folderType: string): Promise<string | null> {
+  // ONLY use this to find test or src folder pathes and NOTHING ELSE
   async function walkDir(currentPath: string): Promise<string | null> {
     const files = await fs.promises.readdir(currentPath, { withFileTypes: true });
+    let keywords = (folderType === 'test') ? ['test', 'tests', 'spec', '__tests__'] : ['src', 'lib', 'app', 'main'];
+    if(folderType === 'integration') {
+      keywords = ['integration'];
+    }
     for (const file of files) {
       const fullPath = path.join(currentPath, file.name);
-      if (file.isDirectory()) {
-        if (file.name === 'test') {
+      if (file.isDirectory()) { //only look for keywords in the tuple, can be improved
+        if (keywords.includes(file.name)) {
           return fullPath;
         }
         const result = await walkDir(fullPath);
-        if (result) {
+        if (result) { // when result is a valid path with name not in the tuple
           return result;
         }
       }
@@ -120,6 +127,14 @@ async function __findTestFolder(clonedPath: string): Promise<string | null> {
   return walkDir(clonedPath);
 }
 
+function __countFiles(path: string): Promise<number> {
+  // I am "shelling out" a little bit, I hope this abides to the rules
+  // go to the directory specified by path and count the number of files present
+  return execAsync(`find ${path} -type f | wc -l`).then((result) => {
+    return parseInt(result.stdout);
+  });
+}
+
 /* @param clonedPath: string - the path of the cloned repository
 *  @returns number - the coverage score of the repository
 *  walks the directory tree to find test files, assign scores based on the number of test files
@@ -127,23 +142,32 @@ async function __findTestFolder(clonedPath: string): Promise<string | null> {
 async function _getCoverageScore(clonedPath: string): Promise<number> {
   //assume repo is cloned in /tmp, do a recursive search for test files
   // walk the directory tree to find the test files
-  const testFolder: string | null = await __findTestFolder(clonedPath);
-  if(testFolder === null){
+  const [testPath, srcPath]: [string | null, string | null] = await Promise.all([
+    await __findFolder(clonedPath, 'test'),
+    await __findFolder(clonedPath, 'src'),
+  ]);
+
+  if(testPath=== null){
+    return 0;
+  }
+  if(srcPath === null) {
     return 0;
   }
   // count number of src files and test files
-  const [numSrc, numTest]: [number, number] = await Promise.all([
-    await __countFiles(),
-    await __countFiles(testFolder)
+  const unitTestPath = testPath + '/unit/';
+  const integrationPath = testPath + '/integration/';
+  const [numSrc, numTest, hasIntegration]: [number, number, number] = await Promise.all([
+    await __countFiles(unitTestPath),
+    await __countFiles(testPath),
+    await __countFiles(integrationPath),
   ]);
   // compute src to test ratio
   const srcToTestRatio = numSrc / numTest;
-
   //see if the repo has an integration test suite
-  
+  const hasIntegrationTestSuite = hasIntegration > 0 ? 1 : 0;
   //compute coverage score
-  const coverageScore = 0.5*(srcToTestRatio) + 0.5*hasIntegrationTestSuite;
-  return 0;
+  const coverageScore = 0.5*srcToTestRatio + 0.5*hasIntegrationTestSuite;
+  return coverageScore;
 }
 
 /* @param path: string - the path of the repository
