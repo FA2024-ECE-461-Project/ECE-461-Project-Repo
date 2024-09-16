@@ -44,11 +44,11 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     // Return a JSON object with the metrics values
     return {
       URL: url,
-      NetScore: NetScore,
+      NetScore: 0,
       NetScore_Latency: 100, // Example latency value, replace with actual if available
       RampUp: rampUpTime.value,
       RampUp_Latency: rampUpTime.latency, // Example latency value, replace with actual if available
-      Correctness: correctnessScore.value,
+      Correctness: 0,
       Correctness_Latency: correctnessScore.latency, // Example latency value, replace with actual if available
       BusFactor: busFactor.value,
       BusFactor_Latency: busFactor.latency, // Example latency value, replace with actual if available
