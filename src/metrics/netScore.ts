@@ -3,8 +3,12 @@ import {calculateRampUpTime} from './rampUpTime';
 import {calculateResponsiveness} from './responsiveness';
 import {calculateLicenseCompatibility} from './licenseCompatibility';
 import {calculateBusFactor} from './busFactor';
-import {calculateCorrectness} from './correctness';
+// import {calculateCorrectness} from './correctness';
 import { promisify } from 'util';
+import * as git from 'isomorphic-git';
+import * as http from 'isomorphic-git/http/node';
+import * as fs from 'fs';
+import * as path from 'path';
 
 async function measureLatency<T, A extends any[]>(
   fn: (...args: A) => Promise<T> | T,
@@ -18,6 +22,7 @@ async function measureLatency<T, A extends any[]>(
 }
 
 export async function GetNetScore(owner: string, repo: string, url: string): Promise<any> {
+  let dir: string | undefined;
   try {
     // console.log('\nFetching data from GitHub\n');
     const gitInfo = await getGithubInfo(owner, repo);
@@ -30,16 +35,32 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     // console.log(`The repository ${owner}/${repo} has ${gitInfo.license} License.`);
     // console.log(`The repository ${owner}/${repo} has ${gitInfo.description} Description.`);
 
-    // Get metrics values
-    const rampUpTime = await measureLatency(calculateBusFactor, gitInfo) //calculateRampUpTime(gitInfo);
+    const repoUrl = `https://github.com/${owner}/${repo}.git`;
+    console.log('Cloning repository:', repoUrl);
+
+    dir = path.join(process.cwd(), 'tmp', `repo-${Date.now()}`);
+    fs.mkdirSync(dir, { recursive: true });
+
+    try {
+      // Clone the repository
+      await git.clone({ fs, http, dir, url: repoUrl });
+    } catch (cloneError) {
+      console.error('Error cloning repository:', cloneError);
+      // If cloning fails, we can't proceed further
+      return null;
+    }
+
+    // Pass the cloned directory to metric functions
+    const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, dir);
     const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
     const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
     //console.log(licenseCompatibility)
     const busFactor = await measureLatency(calculateBusFactor,gitInfo);
-    const correctnessScore = await measureLatency(calculateCorrectness,gitInfo);
+    // const correctnessScore = await measureLatency(calculateCorrectness,gitInfo);
+    const correctnessScore = 0.5
 
     //calculate the NetScore
-    const NetScore = correctnessScore.value + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
+    const NetScore = correctnessScore + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
 
     // Return a JSON object with the metrics values
     return {
@@ -60,6 +81,11 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
   } catch (error) {
     console.error('GetNetScore: Failed to get repository info:', error);
     return null;
+  }  finally {
+    // Clean up: delete the cloned repository
+    if (dir && fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   }
 }
 
