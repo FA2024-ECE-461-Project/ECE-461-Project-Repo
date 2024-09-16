@@ -3,7 +3,7 @@ import {calculateRampUpTime} from './rampUpTime';
 import {calculateResponsiveness} from './responsiveness';
 import {calculateLicenseCompatibility} from './licenseCompatibility';
 import {calculateBusFactor} from './busFactor';
-import {calculateCorrectness} from './correctness';
+// import {calculateCorrectness} from './correctness';
 import { promisify } from 'util';
 
 async function measureLatency<T, A extends any[]>(
