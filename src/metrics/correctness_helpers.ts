@@ -105,7 +105,6 @@ async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
 async function _getCoverageScore(owner: string, repo: string, originalPath: string) {
   // clone the repository
   const gitHubURL = `https://github.com/${owner}/${repo}`;
-  const clonedPath = await cloneRepo(gitHubURL);
 
   // walk the directory tree to find the test files
   
