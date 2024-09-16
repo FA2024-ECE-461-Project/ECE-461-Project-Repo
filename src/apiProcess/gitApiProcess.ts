@@ -2,7 +2,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from a .env file into process.env
 import axios, { all } from 'axios';
-dotenv.config();
 import { log } from '../logger';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
