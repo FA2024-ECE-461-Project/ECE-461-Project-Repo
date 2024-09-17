@@ -25,7 +25,9 @@ async function cloneRepo(githubUrl: string): Promise<string> {
     if (!owner || !repo) {
       throw new Error('Invalid GitHub URL');
     }
-    repoPath = path.join('/tmp', repo);
+    const cwd = process.cwd(); // current working directory
+    repoPath = path.join(`${cwd}/`, repo);  // aim to clone to current working directory
+    // on success, should get a cloned repo folder in the current working directory
   } catch (error) {
     throw new Error('Invalid GitHub URL');
   }
@@ -57,22 +59,40 @@ async function removeRepo(repoPath: string): Promise<Boolean> {
     // Step 1: Validate the repository path
     if (!fs.existsSync(repoPath)) {
         throw new Error('Repository does not exist');
+    } 
+    // sanity checks on input, don't wanna delete important directories
+    // Step 1: Normalize the repository path
+    const normalizedRepoPath = path.resolve(repoPath);
+    // Step 2: Get the current project directory
+    const currentProjectDir = path.resolve(__dirname);
+    // Step 3: Define critical directories
+    const criticalDirs = [
+        path.resolve('/'),
+        path.resolve(process.env.HOME || '~'),
+        currentProjectDir,
+    ];
+    // Step 4: Check if the path is a critical directory
+    if (criticalDirs.includes(normalizedRepoPath)) {
+        throw new Error('Attempt to remove a critical directory');
     }
-    
-    // Step 2: Remove the repository
+    // Step 5: Validate the repository path
+    if (!fs.existsSync(normalizedRepoPath)) {
+        throw new Error('Repository does not exist');
+    }
+    // Step 6: Remove the repository
     await exec(`rm -rf ${repoPath}`);
-    // Step 3: Return true to indicate success
+    // Step 7: Return true to indicate success
     return true;
 }
 
 
 // Example usage
-const githubUrl = 'https://github.com/cloudinary/cloudinary_npm';
-
-cloneRepo(githubUrl).then(repoPath => {
-  console.log(`Repository cloned to: ${repoPath}`);
-}).catch(error => {
-  console.error('Error:', error.message);
-});
+// const githubUrl = 'https://github.com/cloudinary/cloudinary_npm';
+// cloneRepo(githubUrl).then((repoPath) => {
+//   console.log(`Cloned to: ${repoPath}`);
+//   removeRepo(repoPath).then((success) => {
+//     console.log(`Removed: ${success}`);
+//   });
+// });
 
 export { cloneRepo , removeRepo };
