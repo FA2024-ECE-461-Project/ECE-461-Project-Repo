@@ -7,7 +7,6 @@ dotenv.config(); // Load environment variables from a .env file into process.env
 
 import { promisify } from 'util';
 import { exec } from 'child_process'; //exec spawns a shell and runs a command within that shell
-import { cloneRepo, removeRepo } from './clone_repo';
 
 const execAsync = promisify(exec); // allowing us to use async/await with exec
 
@@ -105,7 +104,7 @@ async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
 async function __findFolder(clonedPath: string, folderType: string): Promise<string | null> {
   // ONLY use this to find test or src folder pathes and NOTHING ELSE
   async function walkDir(currentPath: string): Promise<string | null> {
-    const files = await fs.promises.readdir(currentPath, { withFileTypes: true });
+    const files = await fs.promises.readdir(currentPath, { withFileTypes: true }); // get a list of files and directories specified by currentPath
     let keywords = (folderType === 'test') ? ['test', 'tests', 'spec', '__tests__'] : ['src', 'lib', 'app', 'main'];
     if(folderType === 'integration') {
       keywords = ['integration'];
@@ -127,12 +126,8 @@ async function __findFolder(clonedPath: string, folderType: string): Promise<str
   return walkDir(clonedPath);
 }
 
-function __countFiles(path: string): Promise<number> {
-  // I am "shelling out" a little bit, I hope this abides to the rules
-  // go to the directory specified by path and count the number of files present
-  return execAsync(`find ${path} -type f | wc -l`).then((result) => {
-    return parseInt(result.stdout);
-  });
+function __countFilesInDirectory(path: string): Promise<number> {
+  // DO NOT "shell out": instead use the path or fs module to do file traversal
 }
 
 /* @param clonedPath: string - the path of the cloned repository
