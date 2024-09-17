@@ -1,11 +1,7 @@
 //calculate correctness
-import { exec } from 'child_process'; // for cloning remote repos to do anaylsis
-import { promisify } from 'util';
 import * as path from 'path';
 import {RepoDetails} from '../apiProcess/gitApiProcess';
 import * as helpers from './correctness_helpers';
-
-const execAsync = promisify(exec); // allowing us to use async/await with exec
 
 /* @param metric: RepoDetails - the returned output from getGitRepoDetails
 *  @returns score between 0 and 1 evaluated from 

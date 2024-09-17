@@ -25,7 +25,9 @@ async function cloneRepo(githubUrl: string): Promise<string> {
     if (!owner || !repo) {
       throw new Error('Invalid GitHub URL');
     }
-    repoPath = path.join('/tmp', repo);
+    const cwd = process.cwd(); // current working directory
+    repoPath = path.join(`${cwd}/`, repo);  // aim to clone to current working directory
+    // on success, should get a cloned repo folder in the current working directory
   } catch (error) {
     throw new Error('Invalid GitHub URL');
   }
