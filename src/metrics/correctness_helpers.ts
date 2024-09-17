@@ -5,11 +5,6 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 dotenv.config(); // Load environment variables from a .env file into process.env
 
-import { promisify } from 'util';
-import { exec } from 'child_process'; //exec spawns a shell and runs a command within that shell
-
-const execAsync = promisify(exec); // allowing us to use async/await with exec
-
 interface GitHubIssues {
   open_issues_count: number;  // Total number of open issues
   total_issues_count: number // total number of issues opened
@@ -126,8 +121,18 @@ async function __findFolder(clonedPath: string, folderType: string): Promise<str
   return walkDir(clonedPath);
 }
 
-function __countFilesInDirectory(path: string): Promise<number> {
+async function __countFilesInDirectory(dirPath: string, count: number = 0): Promise<number> {
   // DO NOT "shell out": instead use the path or fs module to do file traversal
+  const filesList = await fs.promises.readdir(dirPath, { withFileTypes: true }); // use readdir (an async method) to prevent blocking event loop
+  for(const file of filesList) {
+    if(file.isDirectory()) { // if file is a directory, descent into it with recursion and update count
+      const subdirPath = path.join(dirPath, file.name);
+      count = await __countFilesInDirectory(subdirPath, count);
+    } else {
+      count++;
+    }
+  }
+  return count;
 }
 
 /* @param clonedPath: string - the path of the cloned repository
@@ -152,9 +157,9 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   const unitTestPath = testPath + '/unit/';
   const integrationPath = testPath + '/integration/';
   const [numSrc, numTest, hasIntegration]: [number, number, number] = await Promise.all([
-    await __countFiles(unitTestPath),
-    await __countFiles(testPath),
-    await __countFiles(integrationPath),
+    await __countFilesInDirectory(unitTestPath),
+    await __countFilesInDirectory(testPath),
+    await __countFilesInDirectory(integrationPath),
   ]);
   // compute src to test ratio
   const srcToTestRatio = numSrc / numTest;
