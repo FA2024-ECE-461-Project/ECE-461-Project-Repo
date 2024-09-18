@@ -159,14 +159,13 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   const unitTestPath = testPath + '/unit/';
   const integrationPath = testPath + '/integration/';
   
-
   const [numSrc, numTest, hasIntegration]: [number, number, number] = await Promise.all([
     await __countFilesInDirectory(srcPath),
     fs.existsSync(unitTestPath) ? await __countFilesInDirectory(unitTestPath) : 0,
     fs.existsSync(integrationPath) ? await __countFilesInDirectory(integrationPath) : 0
   ]);
   // compute src to test ratio
-  const srcToTestRatio = 
+  const srcToTestRatio = numTest / numSrc;
   //see if the repo has an integration test suite
   const hasIntegrationTestSuite = hasIntegration > 0 ? 1 : 0;
   //compute coverage score
