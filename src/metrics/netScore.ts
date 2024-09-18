@@ -43,12 +43,30 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     const clonedPath = await cloneRepo(repoUrl);
     //get clone time
     let clone_time = (new Date().getTime() - start_clone) / 1000;
-
-    const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, clonedPath);
-    const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
-    const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
-    const busFactor = await measureLatency(calculateBusFactor,gitInfo);
-    const correctnessScore = {value:0, latency: 0}; //await measureLatency(calculateCorrectness, gitInfo, clonedPath);
+    
+    const [rampUpTime, 
+           responsiveness, 
+           ] = await Promise.all(
+              [measureLatency(calculateRampUpTime, gitInfo, clonedPath), 
+                measureLatency(calculateResponsiveness,gitInfo)
+              ])
+    
+    const [ 
+            licenseCompatibility,
+            busFactor,
+            correctnessScore
+          ] = await Promise.all(
+              [
+                measureLatency(calculateLicenseCompatibility,gitInfo),
+                measureLatency(calculateBusFactor,gitInfo),
+                {value:0, latency: 0}
+              ])
+    // const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, clonedPath);
+    // const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
+    // const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
+    // const busFactor = await measureLatency(calculateBusFactor,gitInfo);
+    // const correctnessScore = {value:0, latency: 0}; //await measureLatency(calculateCorrectness, gitInfo, clonedPath);
+    
     const removeResult = await removeRepo(clonedPath);
     assert(removeResult, 'Failed to remove cloned repository');
     //calculate the NetScore
