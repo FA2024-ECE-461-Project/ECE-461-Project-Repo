@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as http from 'isomorphic-git/http/node';
 import * as git from 'isomorphic-git';
 import { URL } from 'url';
-import { exec } from 'child_process'; // for cloning remote repos to do anaylsis
+import { couldStartTrivia } from 'typescript';
 
 /*
     * Clone a GitHub repository to the local filesystem
@@ -26,6 +26,7 @@ async function cloneRepo(githubUrl: string): Promise<string> {
       throw new Error('Invalid GitHub URL');
     }
     const cwd = process.cwd(); // current working directory
+    const projectDirectory = path.resolve(process.cwd());
     repoPath = path.join(`${cwd}/`, repo);  // aim to clone to current working directory
     // on success, should get a cloned repo folder in the current working directory
   } catch (error) {
@@ -55,36 +56,40 @@ async function cloneRepo(githubUrl: string): Promise<string> {
     * @returns: boolean - Indicates whether the repository was successfully removed
     * if the repository does not exist, throw an error
 */
-async function removeRepo(repoPath: string): Promise<Boolean> {
-    // Step 1: Validate the repository path
-    if (!fs.existsSync(repoPath)) {
-        throw new Error('Repository does not exist');
-    } 
-    // sanity checks on input, don't wanna delete important directories
-    // Step 1: Normalize the repository path
-    const normalizedRepoPath = path.resolve(repoPath);
-    // Step 2: Get the current project directory
-    const currentProjectDir = path.resolve(__dirname);
-    // Step 3: Define critical directories
-    const criticalDirs = [
-        path.resolve('/'),
-        path.resolve(process.env.HOME || '~'),
-        currentProjectDir,
-    ];
-    // Step 4: Check if the path is a critical directory
-    if (criticalDirs.includes(normalizedRepoPath)) {
-        throw new Error('Attempt to remove a critical directory');
-    }
-    // Step 5: Validate the repository path
-    if (!fs.existsSync(normalizedRepoPath)) {
-        throw new Error('Repository does not exist');
-    }
-    // Step 6: Remove the repository
-    await exec(`rm -rf ${repoPath}`);
-    // Step 7: Return true to indicate success
-    return true;
+// Function to escape special characters in a string for use in a regex pattern
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
+async function removeRepo(repoPath: string): Promise<Boolean> {
+    // Step 1: Normalize the input path
+    const normalizedRepoPath = path.normalize(repoPath);
+    // Step 2: Resolve the absolute path
+    const resolvedRepoPath = path.resolve(normalizedRepoPath);
+    const projectDirectory = path.resolve(process.cwd());
+    
+    // Step 3: do regex matching on input string (this might be optional)
+    // const escapedProjectDirectory = escapeRegExp(projectDirectory);
+    // const projectDirectoryRegex = new RegExp(escapedProjectDirectory);
+    // if (projectDirectoryRegex.test(resolvedRepoPath)) {
+    //     throw new Error('Cannot remove any path containing the project directory path');
+    // }
+    // Step 4: Prevent removal of the project directory itself
+    if (resolvedRepoPath === projectDirectory) {
+        throw new Error('Cannot remove the project directory');
+    }
+    // Step 5: Validate the repository path
+    if (!fs.existsSync(resolvedRepoPath)) {
+        throw new Error('Repository does not exist');
+    }
+    // Step 6: Proceed with removal (additional code for removal would go here)
+    fs.rm(resolvedRepoPath, { recursive: true }, (err) => { 
+      if (err) {
+        throw new Error('Error removing the repository');
+      }
+    });
+    return true;
+}
 
 // Example usage
 // const githubUrl = 'https://github.com/cloudinary/cloudinary_npm';
@@ -95,4 +100,14 @@ async function removeRepo(repoPath: string): Promise<Boolean> {
 //   });
 // });
 
+// console.log(path.resolve(path.join(`${process.cwd()}`, '..')));
+// const projectDirectory = path.resolve(process.cwd());
+// const projectName = path.basename(projectDirectory);
+
+// console.log(projectDirectory);
+// console.log(projectName);
+// const toRemove = "/home/shay/a/ko109/461/ECE-461-Project-Repo/dummy"
+// // const toRemove = "/home/shay/a/ko109/461/ECE-461-Project-Repo";
+// removeRepo(toRemove).then((success) => { console.log(`${toRemove} is Removed: ${success}`); });
+          
 export { cloneRepo , removeRepo };
