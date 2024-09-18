@@ -11,7 +11,6 @@ Team Members:
 ## Environment Setup
 *  Before developement/test run, or right after git pull, run ```npm install ``` to install all packages required. 
 * .gitignore ignores node_modules/
-* remember to ```git rm -r node_modules/ ``` before pushing to remote branches.
 
 
 
