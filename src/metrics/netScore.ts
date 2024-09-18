@@ -37,8 +37,15 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     fs.mkdirSync(dir, { recursive: true });
 
     try {
-      // Clone the repository
-      await git.clone({ fs, http, dir, url: repoUrl });
+      // Clone the repository with shallow clone
+      await git.clone({
+        fs,
+        http,
+        dir,
+        url: repoUrl,
+        singleBranch: true,
+        depth: 1, // Only the latest commit
+      });
     } catch (cloneError) {
       console.error('Error cloning repository:', cloneError);
       // If cloning fails, we can't proceed further
