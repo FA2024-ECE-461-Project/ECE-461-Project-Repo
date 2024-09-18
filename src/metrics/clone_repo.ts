@@ -4,8 +4,6 @@ import * as fs from 'fs';
 import * as http from 'isomorphic-git/http/node';
 import * as git from 'isomorphic-git';
 import { URL } from 'url';
-import { couldStartTrivia } from 'typescript';
-
 /*
     * Clone a GitHub repository to the local filesystem
     * @param githubUrl: string - The URL of the GitHub repository to clone
@@ -26,8 +24,8 @@ async function cloneRepo(githubUrl: string): Promise<string> {
       throw new Error('Invalid GitHub URL');
     }
     const cwd = process.cwd(); // current working directory
-    const projectDirectory = path.resolve(process.cwd());
-    repoPath = path.join(`${cwd}/`, repo);  // aim to clone to current working directory
+    const projectDirectory = path.resolve(cwd);
+    repoPath = path.join(`${projectDirectory}/`, repo);  // aim to clone to current working directory
     // on success, should get a cloned repo folder in the current working directory
   } catch (error) {
     throw new Error('Invalid GitHub URL');
