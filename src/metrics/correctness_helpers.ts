@@ -104,6 +104,10 @@ async function __findFolder(clonedPath: string, folderType: string): Promise<str
     if(folderType === 'integration') {
       keywords = ['integration'];
     }
+    if(folderType !== "test" && folderType !== "src") {
+      console.error('Invalid folder type: only test or src folder types are allowed');
+      return null;
+    }
     for (const file of files) {
       const fullPath = path.join(currentPath, file.name);
       if (file.isDirectory()) { //only look for keywords in the tuple, can be improved
