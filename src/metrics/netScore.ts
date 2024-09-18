@@ -43,7 +43,7 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
     const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
     const busFactor = await measureLatency(calculateBusFactor,gitInfo);
-    const correctnessScore = {value:0, latency: 0};//await measureLatency(calculateCorrectness, gitInfo, clonedPath);
+    const correctnessScore = await measureLatency(calculateCorrectness, gitInfo, clonedPath);
     const removeResult = await removeRepo(clonedPath);
     assert(removeResult, 'Failed to remove cloned repository');
     //calculate the NetScore

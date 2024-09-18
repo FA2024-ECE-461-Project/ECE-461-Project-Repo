@@ -3,13 +3,8 @@ import axios from 'axios';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import ts from 'typescript';
 dotenv.config(); // Load environment variables from a .env file into process.env
-
-interface GitHubIssues {
-  open_issues_count: number;  // Total number of open issues
-  total_issues_count: number // total number of issues opened
-  // add more fields if needed
-}
 
 /* @param owner: string - the owner of the repository
 *  @param repo: string - the repository name
@@ -45,49 +40,6 @@ async function _hasTestSuite(owner: string, repo: string): Promise<boolean> {
   return false;
 }
 
-/* @param owner: string - the owner of the repository
-*  @param repo: string - the repository name
-*  @returns GitHubIssues - the total number of issues and open issues
-* 
-* a helper function that makes an API call to retrieve total number of issues and
-* number of open issues for a repository
-* */
-async function _getIssues(owner: string, repo: string): Promise<GitHubIssues> {
-  const repoUrl = `https://api.github.com/repos/${owner}/${repo}`;
-  const closedIssuesUrl = `https://api.github.com/search/issues?q=repo:${owner}/${repo}+type:issue+state:closed`;
-
-  try {
-    // Make the API call to fetch the repository details
-    const [openIssues, totalIssues] = await Promise.all([
-      axios.get(repoUrl, {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          // add an Authorization header if you have a GitHub token
-          'Authorization': `token ${process.env.GITHUB_TOKEN}`
-        },
-      }),
-      axios.get(closedIssuesUrl, {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          // add an Authorization header if you have a GitHub token
-          'Authorization': `token ${process.env.GITHUB_TOKEN}`
-        },
-      }),
-    ]);
-  
-    // Extract the total number of issues (both open and closed)
-    const result: GitHubIssues = {
-      open_issues_count : openIssues.data.open_issues_count,
-      total_issues_count : totalIssues.data.total_count
-    }
-
-    return result;
-  } catch (error) {
-    // Handle error and display appropriate message
-    console.error('Error fetching issues:', error);
-    throw error;
-  }
-}
 
 /* 
 *  @param clonedPath: string - the path of the cloned repository
@@ -165,7 +117,7 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   
   const [numSrc, numTest, hasIntegration]: [number, number, number] = await Promise.all([
     await __countFilesInDirectory(srcPath),
-    fs.existsSync(unitTestPath) ? await __countFilesInDirectory(unitTestPath) : 0,
+    fs.existsSync(unitTestPath) ? await __countFilesInDirectory(unitTestPath) : await __countFilesInDirectory(testPath),
     fs.existsSync(integrationPath) ? await __countFilesInDirectory(integrationPath) : 0
   ]);
   // compute src to test ratio
@@ -191,4 +143,4 @@ function _getLintScore(path: string): number {
   return 0;
 }
 
-export { GitHubIssues, _hasTestSuite, _getIssues, _getCoverageScore, _getLintScore };
+export { _hasTestSuite, _getCoverageScore, _getLintScore };
