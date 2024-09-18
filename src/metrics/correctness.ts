@@ -1,5 +1,4 @@
 //calculate correctness
-import * as path from 'path';
 import {RepoDetails} from '../apiProcess/gitApiProcess';
 import * as helpers from './correctness_helpers';
 

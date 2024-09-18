@@ -3,6 +3,8 @@ import {calculateRampUpTime} from './rampUpTime';
 import {calculateResponsiveness} from './responsiveness';
 import {calculateLicenseCompatibility} from './licenseCompatibility';
 import {calculateBusFactor} from './busFactor';
+import {calculateCorrectness} from './correctness';
+import { log } from '../logger';
 // import {calculateCorrectness} from './correctness';
 import * as git from 'isomorphic-git';
 import * as http from 'isomorphic-git/http/node';
@@ -47,7 +49,7 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
         depth: 1, // Only the latest commit
       });
     } catch (cloneError) {
-      console.error('Error cloning repository:', cloneError);
+      log.error('Error cloning repository:', cloneError);
       // If cloning fails, we can't proceed further
       return null;
     }
@@ -55,10 +57,9 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, dir);
     const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
     const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
-    //console.log(licenseCompatibility)
     const busFactor = await measureLatency(calculateBusFactor,gitInfo);
-    // const correctnessScore = await measureLatency(calculateCorrectness,gitInfo);
-    const correctnessScore = 0.5
+    const correctnessScore = await measureLatency(calculateCorrectness,gitInfo, dir);
+
 
     //calculate the NetScore
     //const NetScore = correctnessScore + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
@@ -70,8 +71,8 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
       NetScore_Latency: 100, // Example latency value, replace with actual if available
       RampUp: rampUpTime.value,
       RampUp_Latency: rampUpTime.latency, // Example latency value, replace with actual if available
-      Correctness: 0,
-      Correctness_Latency: 0, // Example latency value, replace with actual if available
+      Correctness: correctnessScore.value,
+      Correctness_Latency: correctnessScore.latency, // Example latency value, replace with actual if available
       BusFactor: busFactor.value,
       BusFactor_Latency: busFactor.latency, // Example latency value, replace with actual if available
       ResponsiveMaintainer: responsiveness.value,

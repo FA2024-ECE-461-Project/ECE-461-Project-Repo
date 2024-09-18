@@ -130,7 +130,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     let allIssues: any[] = [];
   
     // Fetch latest 300 commits
-    for (let page = 1; page <= 3; page++) { 
+    for (let page = 1; page <= 5; page++) { 
       // Fetch a page of 100 commits
       const commitsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits`, {
         params: {
@@ -152,7 +152,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     }
 
     // Fetch latest 300 issues
-    for (let page = 1; page <= 3; page++) {
+    for (let page = 1; page <= 5; page++) {
       const issuesResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/issues`, {
         params: {
           state: 'all',
