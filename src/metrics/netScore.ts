@@ -39,22 +39,22 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
 
     // Clone the repository
     const clonedPath = await cloneRepo(repoUrl);
-    const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, dir);
+    const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, clonedPath);
     const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
     const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
     const busFactor = await measureLatency(calculateBusFactor,gitInfo);
-    // const correctnessScore = await measureLatency(calculateCorrectness,gitInfo);
-    const correctnessScore = 0.5
+    const correctnessScore = {value:0, latency: 0};//await measureLatency(calculateCorrectness, gitInfo, clonedPath);
     const removeResult = await removeRepo(clonedPath);
     assert(removeResult, 'Failed to remove cloned repository');
     //calculate the NetScore
-    //const NetScore = correctnessScore + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
+    const NetScore = (0.2)*correctnessScore.value + (0.2)*busFactor.value + (0.1)*licenseCompatibility.value + 
+                        (0.3)*responsiveness.value + (0.2)*rampUpTime.value;
 
     // Return a JSON object with the metrics values
     return {
       URL: url,
-      NetScore: 0,
-      NetScore_Latency: 100, // Example latency value, replace with actual if available
+      NetScore: NetScore,
+      NetScore_Latency: -1, // Example latency value, replace with actual if available
       RampUp: rampUpTime.value,
       RampUp_Latency: rampUpTime.latency, // Example latency value, replace with actual if available
       Correctness: correctnessScore.value,
