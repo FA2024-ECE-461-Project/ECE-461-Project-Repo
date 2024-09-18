@@ -5,11 +5,13 @@ import {calculateLicenseCompatibility} from './licenseCompatibility';
 import {calculateBusFactor} from './busFactor';
 import {calculateCorrectness} from './correctness';
 import { log } from '../logger';
+import { cloneRepo, removeRepo } from './clone_repo';
 // import {calculateCorrectness} from './correctness';
 import * as git from 'isomorphic-git';
 import * as http from 'isomorphic-git/http/node';
 import * as fs from 'fs';
 import * as path from 'path';
+import { assert } from 'console';
 
 async function measureLatency<T, A extends any[]>(
   fn: (...args: A) => Promise<T> | T,
@@ -35,32 +37,16 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     const repoUrl = `https://github.com/${owner}/${repo}.git`;
     console.log('Cloning repository:', repoUrl);
 
-    dir = path.join(process.cwd(), 'tmp', `repo-${Date.now()}`);
-    fs.mkdirSync(dir, { recursive: true });
-
-    try {
-      // Clone the repository with shallow clone
-      await git.clone({
-        fs,
-        http,
-        dir,
-        url: repoUrl,
-        singleBranch: true,
-        depth: 1, // Only the latest commit
-      });
-    } catch (cloneError) {
-      log.error('Error cloning repository:', cloneError);
-      // If cloning fails, we can't proceed further
-      return null;
-    }
-
+    // Clone the repository
+    const clonedPath = await cloneRepo(repoUrl);
     const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, dir);
     const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
     const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
     const busFactor = await measureLatency(calculateBusFactor,gitInfo);
-    const correctnessScore = await measureLatency(calculateCorrectness,gitInfo, dir);
-
-
+    // const correctnessScore = await measureLatency(calculateCorrectness,gitInfo);
+    const correctnessScore = 0.5
+    const removeResult = await removeRepo(clonedPath);
+    assert(removeResult, 'Failed to remove cloned repository');
     //calculate the NetScore
     //const NetScore = correctnessScore + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
 
