@@ -123,13 +123,15 @@ async function __findFolder(clonedPath: string, folderType: string): Promise<str
 
 async function __countFilesInDirectory(dirPath: string, count: number = 0): Promise<number> {
   // DO NOT "shell out": instead use the path or fs module to do file traversal
-  const filesList = await fs.promises.readdir(dirPath, { withFileTypes: true }); // use readdir (an async method) to prevent blocking event loop
-  for(const file of filesList) {
-    if(file.isDirectory()) { // if file is a directory, descent into it with recursion and update count
-      const subdirPath = path.join(dirPath, file.name);
-      count = await __countFilesInDirectory(subdirPath, count);
-    } else {
-      count++;
+  if(fs.existsSync(dirPath)) {
+    const filesList = await fs.promises.readdir(dirPath, { withFileTypes: true }); // use readdir (an async method) to prevent blocking event loop
+    for(const file of filesList) {
+      if(file.isDirectory()) { // if file is a directory, descent into it with recursion and update count
+        const subdirPath = path.join(dirPath, file.name);
+        count = await __countFilesInDirectory(subdirPath, count);
+      } else {
+        count++;
+      }
     }
   }
   return count;
@@ -156,13 +158,15 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   // count number of src files and test files
   const unitTestPath = testPath + '/unit/';
   const integrationPath = testPath + '/integration/';
+  
+
   const [numSrc, numTest, hasIntegration]: [number, number, number] = await Promise.all([
-    await __countFilesInDirectory(unitTestPath),
-    await __countFilesInDirectory(testPath),
-    await __countFilesInDirectory(integrationPath),
+    await __countFilesInDirectory(srcPath),
+    fs.existsSync(unitTestPath) ? await __countFilesInDirectory(unitTestPath) : 0,
+    fs.existsSync(integrationPath) ? await __countFilesInDirectory(integrationPath) : 0
   ]);
   // compute src to test ratio
-  const srcToTestRatio = numSrc / numTest;
+  const srcToTestRatio = 
   //see if the repo has an integration test suite
   const hasIntegrationTestSuite = hasIntegration > 0 ? 1 : 0;
   //compute coverage score
