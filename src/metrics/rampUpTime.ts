@@ -52,7 +52,10 @@ function checkInstallationInstructions(dir: string): boolean {
 
 // Function to calculate the code-to-comment ratio score
 function calculateCodeCommentRatio(dir: string): number {
+  // Get all code files in the repository
+  console.log('Calculating code-to-comment ratio score...');
   const allFiles = getAllFiles(dir);
+  console.log('got all files');
   const codeExtensions = ['.js', '.ts', '.py', '.java', '.c', '.cpp', '.cs', '.rb', '.go', '.php', '.swift', '.kt', '.kts'];
   const codeFiles = allFiles.filter(file => codeExtensions.includes(path.extname(file).toLowerCase()));
 

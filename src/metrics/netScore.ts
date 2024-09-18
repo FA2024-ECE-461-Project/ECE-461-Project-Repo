@@ -4,7 +4,6 @@ import {calculateResponsiveness} from './responsiveness';
 import {calculateLicenseCompatibility} from './licenseCompatibility';
 import {calculateBusFactor} from './busFactor';
 // import {calculateCorrectness} from './correctness';
-import { promisify } from 'util';
 import * as git from 'isomorphic-git';
 import * as http from 'isomorphic-git/http/node';
 import * as fs from 'fs';
@@ -26,14 +25,10 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
   try {
     // console.log('\nFetching data from GitHub\n');
     const gitInfo = await getGithubInfo(owner, repo);
-
-    // // Print repository information
-    // console.log(`The repository ${owner}/${repo} has ${gitInfo.stars} stars.`);
-    // console.log(`The repository ${owner}/${repo} has ${gitInfo.issues} Issues.`);
-    // console.log(`The repository ${owner}/${repo} has ${gitInfo.pullRequests} PullRequests.`);
-    // console.log(`The repository ${owner}/${repo} has ${gitInfo.forks} Forks.`);
-    // console.log(`The repository ${owner}/${repo} has ${gitInfo.license} License.`);
-    // console.log(`The repository ${owner}/${repo} has ${gitInfo.description} Description.`);
+    if (!gitInfo) {
+      console.error('Failed to get repository info');
+      return null;
+    }
 
     const repoUrl = `https://github.com/${owner}/${repo}.git`;
     console.log('Cloning repository:', repoUrl);
@@ -50,7 +45,6 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
       return null;
     }
 
-    // Pass the cloned directory to metric functions
     const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, dir);
     const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
     const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
@@ -60,7 +54,7 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     const correctnessScore = 0.5
 
     //calculate the NetScore
-    const NetScore = correctnessScore + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
+    //const NetScore = correctnessScore + busFactor.value + licenseCompatibility.value + responsiveness.value + rampUpTime.value;
 
     // Return a JSON object with the metrics values
     return {
@@ -70,7 +64,7 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
       RampUp: rampUpTime.value,
       RampUp_Latency: rampUpTime.latency, // Example latency value, replace with actual if available
       Correctness: 0,
-      Correctness_Latency: correctnessScore.latency, // Example latency value, replace with actual if available
+      Correctness_Latency: 0, // Example latency value, replace with actual if available
       BusFactor: busFactor.value,
       BusFactor_Latency: busFactor.latency, // Example latency value, replace with actual if available
       ResponsiveMaintainer: responsiveness.value,
