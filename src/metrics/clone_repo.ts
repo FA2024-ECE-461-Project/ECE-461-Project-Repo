@@ -68,12 +68,11 @@ async function removeRepo(repoPath: string): Promise<Boolean> {
     const resolvedRepoPath = path.resolve(normalizedRepoPath);
     const projectDirectory = path.resolve(process.cwd());
     
-    // Step 3: do regex matching on input string (this might be optional)
-    // const escapedProjectDirectory = escapeRegExp(projectDirectory);
-    // const projectDirectoryRegex = new RegExp(escapedProjectDirectory);
-    // if (projectDirectoryRegex.test(resolvedRepoPath)) {
-    //     throw new Error('Cannot remove any path containing the project directory path');
-    // }
+    // Step 3: Prevent removing anything outside the project directory
+    // so that we don't accidentally delete important files like ~,/,...etc
+    if (!resolvedRepoPath.startsWith(projectDirectory)) {
+        throw new Error('Cannot remove files outside the project directory');
+    }
     // Step 4: Prevent removal of the project directory itself
     if (resolvedRepoPath === projectDirectory) {
         throw new Error('Cannot remove the project directory');
