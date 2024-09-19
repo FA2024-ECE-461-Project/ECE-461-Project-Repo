@@ -14,7 +14,6 @@ async function calculateCorrectness(metric: RepoDetails, clonedPath: string): Pr
   // get the issue information: reuse code from responsiveness
 
   // compute static analysis score: wait for later
-  // const staticAnalysisScore = await helpers._getLintScore(clonedPath);
 
   // compute issue ratio
   return 0.5 * testCoverageScore;
