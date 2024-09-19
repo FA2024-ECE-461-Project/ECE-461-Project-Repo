@@ -101,17 +101,19 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   if(!fs.existsSync(clonedPath)) {
     throw new Error('Cloned path does not exist');
   }
-  // see if the repo has CI/CD setup
+
+  // Check for CI/CD configuration files 
   const ciFiles = ['.travis.yml', 'circle.yml', 'Jenkinsfile', 'azure-pipelines.yml', '.github/workflows'];
   let coverageScore = 0;
-  // Check for CI/CD configuration files if any of the CI/CD files exist, set coverageScore to 0.8
   for (const ciFile of ciFiles) {
     const ciFilePath = path.join(clonedPath, ciFile);
     if (fs.existsSync(ciFilePath)) {
+      // if any of the CI/CD files exist, set coverageScore to 0.8
       coverageScore = 0.8;
       break;
     }
   }
+
   // find test and src folders
   const [testFolderPath, srcFolderPath] = await Promise.all([ __findTestOrSrc(clonedPath, 'test'),
     __findTestOrSrc(clonedPath, 'src')]);
@@ -123,12 +125,21 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   if(testFolderPath === null) { //has a src folder but no test folder ⇒ coverageScore = 0
     return 0;
   }
+
   // compute the ratio of test files to source files
   const [numTests, numSrc] = await Promise.all([__countFilesInDirectory(testFolderPath),
     __countFilesInDirectory(srcFolderPath)]);
   // handle if there are more tests than source files
   if(numTests > numSrc) {
-    // do this later
+    // when there are more tests than source files: first gauge how much more tests 
+    // there are than source files ("penalty" for having more tests)
+    let penaltyRatio = (numTests - numSrc) / numSrc;
+    if(penaltyRatio < 0) { 
+      // weird to have more tests than source files: so set coverage to 0
+      coverageScore = 0;
+    } else {
+      coverageScore += 0.2 * (1 - penaltyRatio);
+    }
   } else {
     coverageScore += 0.2 * numTests / numSrc;
   }
