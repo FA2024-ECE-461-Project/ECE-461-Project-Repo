@@ -46,35 +46,21 @@ async function _hasTestSuite(owner: string, repo: string): Promise<boolean> {
 *  @returns string | null - the path of the test folder or null if not found
 * */
 
-// recursive function to find the test folder
-// TS recursion to make this method more complete (cover names beyond those in the tuple)
-async function __findFolder(clonedPath: string, folderType: string): Promise<string | null> {
-  // ONLY use this to find test or src folder pathes and NOTHING ELSE
-  async function walkDir(currentPath: string): Promise<string | null> {
-    const files = await fs.promises.readdir(currentPath, { withFileTypes: true }); // get a list of files and directories specified by currentPath
-    let keywords = (folderType === 'test') ? ['test', 'tests', 'spec', '__tests__'] : ['src', 'lib', 'app', 'main'];
-    if(folderType === 'integration') {
-      keywords = ['integration'];
-    }
-    if(folderType !== "test" && folderType !== "src") {
-      console.error('Invalid folder type: only test or src folder types are allowed');
-      return null;
-    }
-    for (const file of files) {
-      const fullPath = path.join(currentPath, file.name);
-      if (file.isDirectory()) { //only look for keywords in the tuple, can be improved
-        if (keywords.includes(file.name)) {
-          return fullPath;
-        }
-        const result = await walkDir(fullPath);
-        if (result) { // when result is a valid path with name not in the tuple
-          return result;
+async function __findFolder(directoryPath: string, targetFolderName: string): Promise<string | null> {
+  return new Promise((resolve, reject) => {
+    fs.readdir(directoryPath, { withFileTypes: true }, (err, files) => {
+      if (err) {
+        return reject(err);
+      }
+      // scan the directory for the target folder
+      for (const file of files) {
+        if (file.isDirectory() && file.name === targetFolderName) {
+          return resolve(path.join(directoryPath, file.name));
         }
       }
-    }
-    return null;
-  }
-  return walkDir(clonedPath);
+      resolve(null);  //return null if target folder is not found
+    });
+  });
 }
 
 async function __countFilesInDirectory(dirPath: string, count: number = 0): Promise<number> {
@@ -115,17 +101,17 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   const unitTestPath = testPath + '/unit/';
   const integrationPath = testPath + '/integration/';
   
-  const [numSrc, numTest, hasIntegration]: [number, number, number] = await Promise.all([
+  const [numSrc, numTest]: [number, number] = await Promise.all([
     await __countFilesInDirectory(srcPath),
     fs.existsSync(unitTestPath) ? await __countFilesInDirectory(unitTestPath) : await __countFilesInDirectory(testPath),
-    fs.existsSync(integrationPath) ? await __countFilesInDirectory(integrationPath) : 0
   ]);
-  // compute src to test ratio
-  const srcToTestRatio = numTest / numSrc;
+  // compute src to test ratio (restrict this to [0,1]): if more test than src, automatically set to 1
+  const testToSrcRatio = Math.min(numTest/numSrc, 1);
+
   //see if the repo has an integration test suite
-  const hasIntegrationTestSuite = hasIntegration > 0 ? 1 : 0;
+  const hasIntegrationTestSuite = fs.existsSync(integrationPath) ? 1 : 0;
   //compute coverage score
-  const coverageScore = 0.5*srcToTestRatio + 0.5*hasIntegrationTestSuite;
+  const coverageScore = 0.5*testToSrcRatio + 0.5*hasIntegrationTestSuite;
   return coverageScore;
 }
 
