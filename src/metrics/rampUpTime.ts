@@ -11,11 +11,11 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
     const readmeScore = checkReadme(dir) ? 0.1 : 0;
     score += readmeScore;
 
-    // (0.3) Installation instruction (keywords: install, test, launch, run)
-    const installScore = checkInstallationInstructions(dir) ? 0.3 : 0;
+    // (0.4) Installation instruction (keywords: install, test, launch, run, example)
+    const installScore = checkInstallationInstructions(dir) ? 0.4 : 0;
     score += installScore;
 
-    // (0.6) Code-to-comment ratio = #comments / (lines of code / 8)
+    // (0.5) Code-to-comment ratio = #comments / (lines of code / 8)
     const codeCommentRatioScore = calculateCodeCommentRatio(dir);
     score += codeCommentRatioScore;
 
@@ -37,7 +37,7 @@ function checkReadme(dir: string): boolean {
 function checkInstallationInstructions(dir: string): boolean {
   const files = fs.readdirSync(dir);
   const readmeFiles = files.filter(file => /^README(\.md|\.txt)?$/i.test(file));
-  const keywords = ['install', 'test', 'launch', 'run'];
+  const keywords = ['install', 'test', 'launch', 'run', 'example'];
 
   for (const readmeFile of readmeFiles) {
     const content = fs.readFileSync(path.join(dir, readmeFile), 'utf8').toLowerCase();
@@ -76,7 +76,7 @@ function calculateCodeCommentRatio(dir: string): number {
 
   const ratio = totalComments / (totalLines / 8);
   const normalizedRatio = Math.min(ratio, 1);
-  const score = normalizedRatio * 0.6;
+  const score = normalizedRatio * 0.5;
 
   return score;
 }
