@@ -46,7 +46,17 @@ async function _hasTestSuite(owner: string, repo: string): Promise<boolean> {
 *  @returns string | null - the path of the test folder or null if not found
 * */
 
-async function __findFolder(directoryPath: string, targetFolderName: string): Promise<string | null> {
+async function __findTestOrSrc(directoryPath: string, targetFolderName: string): Promise<string | null> {
+  let keywrods: string[];
+
+  if(targetFolderName === 'test') {
+    keywrods = ['test', 'tests', 'spec', '__tests__'];
+  } else if (targetFolderName === 'src') {
+    keywrods = ['src', 'source', 'lib', 'app'];
+  } else {
+    throw new Error('Invalid target folder name, only "test" and "src" are allowed');
+  }
+
   return new Promise((resolve, reject) => {
     fs.readdir(directoryPath, { withFileTypes: true }, (err, files) => {
       if (err) {
@@ -54,7 +64,7 @@ async function __findFolder(directoryPath: string, targetFolderName: string): Pr
       }
       // scan the directory for the target folder
       for (const file of files) {
-        if (file.isDirectory() && file.name === targetFolderName) {
+        if (file.isDirectory() && keywrods.includes(file.name)) {
           return resolve(path.join(directoryPath, file.name));
         }
       }
@@ -87,8 +97,8 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   //assume repo is cloned in /tmp, do a recursive search for test files
   // walk the directory tree to find the test files
   const [testPath, srcPath]: [string | null, string | null] = await Promise.all([
-    await __findFolder(clonedPath, 'test'),
-    await __findFolder(clonedPath, 'src'),
+    await __findTestOrSrc(clonedPath, 'test'),
+    await __findTestOrSrc(clonedPath, 'src'),
   ]);
 
   if(testPath=== null){
