@@ -6,7 +6,6 @@ import {calculateBusFactor} from './busFactor';
 import {calculateCorrectness} from './correctness';
 import { log } from '../logger';
 import { cloneRepo, removeRepo } from './clone_repo';
-// import {calculateCorrectness} from './correctness';
 import * as git from 'isomorphic-git';
 import * as http from 'isomorphic-git/http/node';
 import * as fs from 'fs';

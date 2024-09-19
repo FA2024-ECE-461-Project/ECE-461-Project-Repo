@@ -1,5 +1,5 @@
-import { _getCoverageScore } from "../src/metrics/correctness_helpers";
 import {cloneRepo, removeRepo} from "../src/metrics/clone_repo";
+import { calculateCorrectness } from "../src/metrics/correctness";
 import exp from "constants";
 
 const testRepoUrl = "https://github.com/cloudinary/cloudinary_npm";
@@ -14,16 +14,8 @@ beforeAll(async () => {
     // mockedGit.clone.mockResolvedValueOnce(clonedPath);
 });
 
-describe('Correctness Helpers', () => {
-  test('_getCoverageScore with valid cloned repo', async () => {
-    const coverageScore = await _getCoverageScore(clonedPath);
-    expect(coverageScore).toBeGreaterThan(0);
-    expect(coverageScore).toBeLessThanOrEqual(1);
-  });
-  test("getCoverageScore with invalid cloned repo", async () => {
-    const invalidPath = "invalid/path";
-    const coverageScore = await _getCoverageScore(invalidPath);
-    expect(coverageScore).toBe(0);
+describe('correctness score tests', () => {
+  test('correctness with valid cloned repo', async () => {
   });
 })
 

@@ -8,7 +8,6 @@ import * as util from 'util';
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from a .env file into process.env
 
-
 /* @param metric: RepoDetails - the returned output from getGitRepoDetails
 *  @returns score between 0 and 1 evaluated from 
 *  - test coverage score
@@ -23,6 +22,7 @@ async function calculateCorrectness(metric: RepoDetails, clonedPath: string): Pr
 
   // compute issue ratio
   const openToClosedIssueRatio = _computeOpenToClosedIssueRatio(metric);
+  console.log(`${metric.repo} - testCoverageScore: ${testCoverageScore}, openToClosedIssueRatio: ${openToClosedIssueRatio}`);
   return 0.5 * testCoverageScore + 0.5 * openToClosedIssueRatio;
 }
 
@@ -179,5 +179,4 @@ function _getLintScore(path: string): number {
   //return score
   return 0;
 }
-
 export {calculateCorrectness};
