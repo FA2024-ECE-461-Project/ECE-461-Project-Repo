@@ -3,7 +3,7 @@ import axios from 'axios';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import ts from 'typescript';
+import * as util from 'util';
 dotenv.config(); // Load environment variables from a .env file into process.env
 
 /* @param owner: string - the owner of the repository
@@ -93,36 +93,29 @@ async function __countFilesInDirectory(dirPath: string, count: number = 0): Prom
 *  @returns number - the coverage score of the repository
 *  walks the directory tree to find test files, assign scores based on the number of test files
 * */
+const readFile = util.promisify(fs.readFile); // helper that will be used in _getCoverageScore
+
 async function _getCoverageScore(clonedPath: string): Promise<number> {
-  //assume repo is cloned in /tmp, do a recursive search for test files
-  // walk the directory tree to find the test files
-  const [testPath, srcPath]: [string | null, string | null] = await Promise.all([
-    await __findTestOrSrc(clonedPath, 'test'),
-    await __findTestOrSrc(clonedPath, 'src'),
-  ]);
+  if(!fs.existsSync(clonedPath)) {
+    throw new Error('Cloned path does not exist');
+  }
+  // see if the repo has CI/CD setup
+  const ciFiles = ['.travis.yml', 'circle.yml', 'Jenkinsfile', 'azure-pipelines.yml', '.github/workflows'];
+  let coverageScore = 0;
+  // Check for CI/CD configuration files if any of the CI/CD files exist, set coverageScore to 0.8
+  for (const ciFile of ciFiles) {
+    const ciFilePath = path.join(clonedPath, ciFile);
+    if (fs.existsSync(ciFilePath)) {
+      coverageScore = 0.8;
+      break;
+    }
+  }
 
-  if(testPath=== null){
-    return 0;
-  }
-  if(srcPath === null) {
-    return 0;
-  }
-  // count number of src files and test files
-  const unitTestPath = testPath + '/unit/';
-  const integrationPath = testPath + '/integration/';
+  // find test and src folders
+  const [testFolderPath, srcFolderPath] = await Promise.all([ __findTestOrSrc(clonedPath, 'test'),
+    __findTestOrSrc(clonedPath, 'src')]);
   
-  const [numSrc, numTest]: [number, number] = await Promise.all([
-    await __countFilesInDirectory(srcPath),
-    fs.existsSync(unitTestPath) ? await __countFilesInDirectory(unitTestPath) : await __countFilesInDirectory(testPath),
-  ]);
-  // compute src to test ratio (restrict this to [0,1]): if more test than src, automatically set to 1
-  const testToSrcRatio = Math.min(numTest/numSrc, 1);
 
-  //see if the repo has an integration test suite
-  const hasIntegrationTestSuite = fs.existsSync(integrationPath) ? 1 : 0;
-  //compute coverage score
-  const coverageScore = 0.5*testToSrcRatio + 0.5*hasIntegrationTestSuite;
-  return coverageScore;
 }
 
 /* @param path: string - the path of the repository
