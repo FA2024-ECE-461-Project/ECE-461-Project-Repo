@@ -128,16 +128,16 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
 
   // compute the ratio of test files to source files
   const [numTests, numSrc] = await Promise.all([__countFilesInDirectory(testFolderPath),
-    __countFilesInDirectory(srcFolderPath)]);
+     __countFilesInDirectory(srcFolderPath)]);
   // handle if there are more tests than source files
   if(numTests > numSrc) {
     // when there are more tests than source files: first gauge how much more tests 
     // there are than source files ("penalty" for having more tests)
     let penaltyRatio = (numTests - numSrc) / numSrc;
-    if(penaltyRatio < 0) { 
-      // weird to have more tests than source files: so set coverage to 0
+    if(penaltyRatio >= 1) { //unreasonably many tests compared to source files
       coverageScore = 0;
-    } else {
+    }
+    else {
       coverageScore += 0.2 * (1 - penaltyRatio);
     }
   } else {
