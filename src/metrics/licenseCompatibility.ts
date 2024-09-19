@@ -1,7 +1,6 @@
-//Check if package contain valid license
 import {RepoDetails} from '../apiProcess/gitApiProcess';
 
-// License map containing SPDX identifiers and their corresponding scores
+// License map to scores 
 const licenseScoreMap: { [key: string]: number } = {
   // SPDX and full license names from your list
   "AFL-3.0": 0,
@@ -115,7 +114,7 @@ export function calculateLicenseCompatibility(metrics: RepoDetails): number {
 
   // Check if the exact license exists in the licenseScoreMap
   if (license && licenseScoreMap.hasOwnProperty(license)) {
-    // Return the score if the license matches
+    //return the score
     return licenseScoreMap[license];
   }
 
