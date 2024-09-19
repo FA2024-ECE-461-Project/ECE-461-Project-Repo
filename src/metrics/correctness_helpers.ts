@@ -134,7 +134,7 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
     // when there are more tests than source files: first gauge how much more tests 
     // there are than source files ("penalty" for having more tests)
     let penaltyRatio = (numTests - numSrc) / numSrc;
-    if(penaltyRatio >= 1) { //unreasonably many tests compared to source files
+    if(penaltyRatio > 1) { //unreasonably many tests compared to source files
       coverageScore = 0;
     }
     else {
