@@ -91,10 +91,12 @@ async function __countFilesInDirectory(dirPath: string, count: number = 0): Prom
 
 /* @param clonedPath: string - the path of the cloned repository
 *  @returns number - the coverage score of the repository
-*  walks the directory tree to find test files, assign scores based on the number of test files
+*  compute coverageScore specified by clonedPath based on the following criteria:
+* - presence of CI/CD configuration files
+* - ratio of test files to source files
+* formula(s) for calculation will differ based on the file structure of the repository, but must
+* ensure the coverageScore is between 0 and 1.
 * */
-const readFile = util.promisify(fs.readFile); // helper that will be used in _getCoverageScore
-
 async function _getCoverageScore(clonedPath: string): Promise<number> {
   if(!fs.existsSync(clonedPath)) {
     throw new Error('Cloned path does not exist');
@@ -110,12 +112,28 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
       break;
     }
   }
-
   // find test and src folders
   const [testFolderPath, srcFolderPath] = await Promise.all([ __findTestOrSrc(clonedPath, 'test'),
     __findTestOrSrc(clonedPath, 'src')]);
-  
+  if(srcFolderPath === null) { 
+    //something MUST be wrong if clonedPath specifies a package repo without a src folder but have CI/CD 
+    //files setup
+    return 0;
+  }
+  if(testFolderPath === null) { //has a src folder but no test folder ⇒ coverageScore = 0
+    return 0;
+  }
+  // compute the ratio of test files to source files
+  const [numTests, numSrc] = await Promise.all([__countFilesInDirectory(testFolderPath),
+    __countFilesInDirectory(srcFolderPath)]);
+  // handle if there are more tests than source files
+  if(numTests > numSrc) {
+    // do this later
+  } else {
+    coverageScore += 0.2 * numTests / numSrc;
+  }
 
+  return coverageScore;
 }
 
 /* @param path: string - the path of the repository
