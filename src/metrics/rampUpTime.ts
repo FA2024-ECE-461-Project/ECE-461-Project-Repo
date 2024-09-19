@@ -19,7 +19,7 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
     const codeCommentRatioScore = calculateCodeCommentRatio(dir);
     score += codeCommentRatioScore;
 
-    return (1 - score);
+    return score;
   } catch (error) {
     console.error('Error calculating ramp-up time:', error);
     return 0;

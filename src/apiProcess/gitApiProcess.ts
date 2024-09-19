@@ -78,6 +78,30 @@ function extractLicenseFromReadme(readmeContent: string): string | null {
   return null;
 }
 
+async function getLicenseFromPackageJson(owner: string, repo: string): Promise<string | null> {
+  try {
+    const packageJsonUrl = `${GITHUB_API_URL}/${owner}/${repo}/contents/package.json`;
+    const packageResponse = await axios.get(packageJsonUrl, {
+      headers: {
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      },
+    });
+
+    // Decode package.json content from base64
+    if (packageResponse.data.content) {
+      const packageContent = Buffer.from(packageResponse.data.content, 'base64').toString('utf-8');
+      const packageJson = JSON.parse(packageContent);
+
+      // Return the license from package.json if it exists
+      return packageJson.license || null;
+    }
+    return null;
+  } catch (error) {
+    log.error(`Failed to fetch package.json for ${owner}/${repo}:`, error);
+    return null;
+  }
+}
+
 // get the GitHub repository details
 export async function getGithubInfo(owner: string, repo: string): Promise<RepoDetails> {
   try {
@@ -87,7 +111,7 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
         Authorization: `token ${process.env.GITHUB_TOKEN}`
       }
     });
-
+    
     //get data from github
     const data = response.data;
     //console.log(data);
@@ -95,28 +119,32 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const stars = data.stargazers_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
-
+    
     let license = data.license?.name || 'No license';
     // let license = licenseMap[data.license?.spdx_id] || 'No license';
     const descrption = data.description || 'No description';
-
     if (license === 'No license' || license === 'Other') {
-      const readmeUrl = `${GITHUB_API_URL}/${owner}/${repo}/readme`;
-      const readmeResponse = await axios.get(readmeUrl, {
-        headers: {
-          Authorization: `token ${process.env.GITHUB_TOKEN}`,
-        },
-      });
-      
-      //check if the readme file is empty
-      if (!readmeResponse.data.content) {
-        log.error(`The README file for ${owner}/${repo} is empty`);
-      }
-      // Decode README content from base64
-      const readmeContent = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
-      const licenseFromReadme = extractLicenseFromReadme(readmeContent);
-      if (licenseFromReadme) {
-        license = licenseFromReadme;
+      const licenseFromPackageJson = await getLicenseFromPackageJson(owner, repo);
+      if (licenseFromPackageJson) {
+        license = licenseFromPackageJson;
+      } else {
+        // Fallback to checking the README for license
+        const readmeUrl = `${GITHUB_API_URL}/${owner}/${repo}/readme`;
+        const readmeResponse = await axios.get(readmeUrl, {
+          headers: {
+            Authorization: `token ${process.env.GITHUB_TOKEN}`,
+          },
+        });
+
+        if (readmeResponse.data.content) {
+          const readmeContent = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
+          const licenseFromReadme = extractLicenseFromReadme(readmeContent);
+          if (licenseFromReadme) {
+            license = licenseFromReadme;
+          }
+        } else {
+          log.error(`The README file for ${owner}/${repo} is empty or not found`);
+        }
       }
     }
 
