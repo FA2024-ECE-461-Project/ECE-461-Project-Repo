@@ -1,12 +1,11 @@
 //Calculate busFactor
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 dotenv.config(); // Load environment variables from a .env file into process.env
-import axios from 'axios';
+import axios from "axios";
 
-import {RepoDetails} from '../apiProcess/gitApiProcess';
+import { RepoDetails } from "../apiProcess/gitApiProcess";
 
 export function calculateBusFactor(metrics: RepoDetails): number {
-  
   // Check if there are any commits available
   if (metrics.commitsData.length == 0) {
     //console.error('No commits data available for calculating bus factor');
@@ -16,8 +15,12 @@ export function calculateBusFactor(metrics: RepoDetails): number {
   // Get commit counts for each user, ignore all anonymous/unknown authors
   const commitCounts: { [key: string]: number } = {};
   metrics.commitsData.forEach((commit: any) => {
-    const author = commit.author ? (commit.author.login ? commit.author.login : commit.author.name) : 'unknown';
-    if(author != 'unknown') {
+    const author = commit.author
+      ? commit.author.login
+        ? commit.author.login
+        : commit.author.name
+      : "unknown";
+    if (author != "unknown") {
       if (!commitCounts[author]) {
         commitCounts[author] = 0;
       }
@@ -27,18 +30,22 @@ export function calculateBusFactor(metrics: RepoDetails): number {
 
   //console.log('Commit Counts:', commitCounts);
 
-  const totalCommits = Object.values(commitCounts).reduce((sum, count) => sum + count, 0);
+  const totalCommits = Object.values(commitCounts).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
   const totalContributors = Object.keys(commitCounts).length;
   const commitsForCoreContributors = 0.1 * totalCommits;
   const thresholdContributors = 0.5 * totalContributors;
   //console.log('Threshold:', thresholdContributors);
 
   // Filter core contributors if they have >= 10% of total commits
-  const coreContributors = Object.values(commitCounts).filter(count => count >= commitsForCoreContributors).length || 0;
+  const coreContributors =
+    Object.values(commitCounts).filter(
+      (count) => count >= commitsForCoreContributors,
+    ).length || 0;
   //console.log('Core Contributors:', coreContributors);
   const coreContributorsRatio = coreContributors / thresholdContributors;
 
   return Math.min(Math.max(coreContributorsRatio, 0), 1);
 }
-
-

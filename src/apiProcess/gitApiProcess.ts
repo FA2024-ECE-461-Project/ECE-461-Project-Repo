@@ -1,13 +1,13 @@
 //Contains functions to interact with the GitHub API and process the responses
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 dotenv.config(); // Load environment variables from a .env file into process.env
-import axios, { all } from 'axios';
-import { log } from '../logger';
+import axios, { all } from "axios";
+import { log } from "../logger";
 
-const GITHUB_API_URL = 'https://api.github.com/repos';
+const GITHUB_API_URL = "https://api.github.com/repos";
 
-if(!process.env.GITHUB_TOKEN) {
-  log.error('GITHUB_TOKEN environment variable not set');
+if (!process.env.GITHUB_TOKEN) {
+  log.error("GITHUB_TOKEN environment variable not set");
   process.exit(1);
 }
 
@@ -39,7 +39,7 @@ const licenseMap: { [key: string]: string } = {
   "CC0-1.0": "Creative Commons Zero v1.0 Universal",
   "CC-BY-4.0": "Creative Commons Attribution 4.0",
   "CC-BY-SA-4.0": "Creative Commons Attribution ShareAlike 4.0",
-  "WTFPL": "Do What The F*ck You Want To Public License",
+  WTFPL: "Do What The F*ck You Want To Public License",
   "ECL-2.0": "Educational Community License v2.0",
   "EPL-1.0": "Eclipse Public License 1.0",
   "EPL-2.0": "Eclipse Public License 2.0",
@@ -49,17 +49,17 @@ const licenseMap: { [key: string]: string } = {
   "GPL-3.0": "GNU General Public License v3.0",
   "LGPL-2.1": "GNU Lesser General Public License v2.1",
   "LGPL-3.0": "GNU Lesser General Public License v3.0",
-  "ISC": "ISC License",
+  ISC: "ISC License",
   "LPPL-1.3c": "LaTeX Project Public License v1.3c",
   "MS-PL": "Microsoft Public License",
-  "MIT": "MIT License",
+  MIT: "MIT License",
   "MPL-2.0": "Mozilla Public License 2.0",
   "OSL-3.0": "Open Software License 3.0",
-  "PostgreSQL": "PostgreSQL License",
+  PostgreSQL: "PostgreSQL License",
   "OFL-1.1": "SIL Open Font License 1.1",
-  "NCSA": "University of Illinois/NCSA Open Source License",
-  "Unlicense": "The Unlicense",
-  "Zlib": "zLib License"
+  NCSA: "University of Illinois/NCSA Open Source License",
+  Unlicense: "The Unlicense",
+  Zlib: "zLib License",
 };
 
 // extract the license from README using regex
@@ -67,8 +67,10 @@ function extractLicenseFromReadme(readmeContent: string): string | null {
   // Updated regex to match all listed licenses
   const licenseRegex = new RegExp(
     Object.keys(licenseMap)
-      .map(license => `\\b${license}\\b`)
-      .join("|"), "i");
+      .map((license) => `\\b${license}\\b`)
+      .join("|"),
+    "i",
+  );
 
   const match = readmeContent.match(licenseRegex);
   if (match) {
@@ -78,7 +80,10 @@ function extractLicenseFromReadme(readmeContent: string): string | null {
   return null;
 }
 
-async function getLicenseFromPackageJson(owner: string, repo: string): Promise<string | null> {
+async function getLicenseFromPackageJson(
+  owner: string,
+  repo: string,
+): Promise<string | null> {
   try {
     const packageJsonUrl = `${GITHUB_API_URL}/${owner}/${repo}/contents/package.json`;
     const packageResponse = await axios.get(packageJsonUrl, {
@@ -89,7 +94,10 @@ async function getLicenseFromPackageJson(owner: string, repo: string): Promise<s
 
     // Decode package.json content from base64
     if (packageResponse.data.content) {
-      const packageContent = Buffer.from(packageResponse.data.content, 'base64').toString('utf-8');
+      const packageContent = Buffer.from(
+        packageResponse.data.content,
+        "base64",
+      ).toString("utf-8");
       const packageJson = JSON.parse(packageContent);
 
       // Return the license from package.json if it exists
@@ -103,15 +111,18 @@ async function getLicenseFromPackageJson(owner: string, repo: string): Promise<s
 }
 
 // get the GitHub repository details
-export async function getGithubInfo(owner: string, repo: string): Promise<RepoDetails> {
+export async function getGithubInfo(
+  owner: string,
+  repo: string,
+): Promise<RepoDetails> {
   try {
     const url = `https://api.github.com/repos/${owner}/${repo}`;
     const response = await axios.get(url, {
       headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`
-      }
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      },
     });
-    
+
     //get data from github
     const data = response.data;
     //console.log(data);
@@ -119,11 +130,14 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const stars = data.stargazers_count;
     const forks = data.forks_count;
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
-    
-    let license = data.license?.name || 'No license';
-    const descrption = data.description || 'No description';
-    if (license === 'No license' || license === 'Other') {
-      const licenseFromPackageJson = await getLicenseFromPackageJson(owner, repo);
+
+    let license = data.license?.name || "No license";
+    const descrption = data.description || "No description";
+    if (license === "No license" || license === "Other") {
+      const licenseFromPackageJson = await getLicenseFromPackageJson(
+        owner,
+        repo,
+      );
       if (licenseFromPackageJson) {
         license = licenseFromPackageJson;
       } else {
@@ -136,13 +150,18 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
         });
 
         if (readmeResponse.data.content) {
-          const readmeContent = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
+          const readmeContent = Buffer.from(
+            readmeResponse.data.content,
+            "base64",
+          ).toString("utf-8");
           const licenseFromReadme = extractLicenseFromReadme(readmeContent);
           if (licenseFromReadme) {
             license = licenseFromReadme;
           }
         } else {
-          log.error(`The README file for ${owner}/${repo} is empty or not found`);
+          log.error(
+            `The README file for ${owner}/${repo} is empty or not found`,
+          );
         }
       }
     }
@@ -155,46 +174,58 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const perPage = 100;
     let allCommits: any[] = [];
     let allIssues: any[] = [];
-  
+
     // Fetch latest 300 commits
-    for (let page = 1; page <= 5; page++) { 
+    for (let page = 1; page <= 5; page++) {
       // Fetch a page of 100 commits
-      const commitsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits`, {
-        params: {
-          per_page: perPage,
-          page: page,
+      const commitsResponse = await axios.get(
+        `https://api.github.com/repos/${owner}/${repo}/commits`,
+        {
+          params: {
+            per_page: perPage,
+            page: page,
+          },
+          headers: {
+            Authorization: `token ${process.env.GITHUB_TOKEN}`,
+          },
         },
-        headers: {
-          Authorization: `token ${process.env.GITHUB_TOKEN}`,
-        },
-      });
-  
+      );
+
       const commits = commitsResponse.data;
       allCommits = allCommits.concat(commits);
-  
+
       // Check if there are more commits to fetch
-      if (commits.length < perPage || new Date(commits[commits.length - 1].commit.author.date) < startDate) {
+      if (
+        commits.length < perPage ||
+        new Date(commits[commits.length - 1].commit.author.date) < startDate
+      ) {
         break;
       }
     }
 
     // Fetch latest 300 issues
     for (let page = 1; page <= 5; page++) {
-      const issuesResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/issues`, {
-        params: {
-          state: 'all',
-          per_page: perPage,
-          page: page,
+      const issuesResponse = await axios.get(
+        `https://api.github.com/repos/${owner}/${repo}/issues`,
+        {
+          params: {
+            state: "all",
+            per_page: perPage,
+            page: page,
+          },
+          headers: {
+            Authorization: `token ${process.env.GITHUB_TOKEN}`,
+          },
         },
-        headers: {
-          Authorization: `token ${process.env.GITHUB_TOKEN}`,
-        },
-      });
+      );
       const issues = issuesResponse.data;
       allIssues = allIssues.concat(issues);
-  
+
       // Check if there are more commits to fetch
-      if (issues.length < perPage || new Date(issues[issues.length - 1].created_at) < startDate) {
+      if (
+        issues.length < perPage ||
+        new Date(issues[issues.length - 1].created_at) < startDate
+      ) {
         break;
       }
     }
@@ -212,9 +243,8 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       commitsData: allCommits,
       issuesData: allIssues,
     };
-    
-    return repoDetails;
 
+    return repoDetails;
   } catch (error) {
     log.error(`Failed to fetch data for ${owner}/${repo}:`, error);
     throw error;

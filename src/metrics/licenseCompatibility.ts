@@ -1,11 +1,11 @@
-import {RepoDetails} from '../apiProcess/gitApiProcess';
+import { RepoDetails } from "../apiProcess/gitApiProcess";
 
-// License map to scores 
+// License map to scores
 const licenseScoreMap: { [key: string]: number } = {
   // SPDX and full license names from your list
   "AFL-3.0": 0,
   "Academic Free License v3.0": 0,
-  
+
   "Apache-2.0": 0.5,
   "Apache License 2.0": 0.5,
 
@@ -30,7 +30,7 @@ const licenseScoreMap: { [key: string]: number } = {
   "0BSD": 1,
   "BSD Zero Clause License": 1,
 
-  "CC": 0,
+  CC: 0,
   "Creative Commons License Family": 0,
 
   "CC0-1.0": 0,
@@ -42,7 +42,7 @@ const licenseScoreMap: { [key: string]: number } = {
   "CC-BY-SA-4.0": 0,
   "Creative Commons Attribution ShareAlike 4.0": 0,
 
-  "WTFPL": 0.5,
+  WTFPL: 0.5,
   "Do What The F*ck You Want To Public License": 0.5,
 
   "ECL-2.0": 0,
@@ -60,21 +60,21 @@ const licenseScoreMap: { [key: string]: number } = {
   "AGPL-3.0": 0,
   "GNU Affero General Public License v3.0": 0,
 
-  "GPL": 0,
+  GPL: 0,
   "GPL-2.0": 0,
   "GPL-3.0": 0,
   "GNU General Public License family": 0,
   "GNU General Public License v2.0": 0,
   "GNU General Public License v3.0": 0,
 
-  "LGPL": 0,
+  LGPL: 0,
   "LGPL-2.1": 1,
   "LGPL-3.0": 0,
   "GNU Lesser General Public License family": 0,
   "GNU Lesser General Public License v2.1": 1,
   "GNU Lesser General Public License v3.0": 0,
 
-  "ISC": 1,
+  ISC: 1,
   "ISC License": 1,
 
   "LPPL-1.3c": 0,
@@ -83,7 +83,7 @@ const licenseScoreMap: { [key: string]: number } = {
   "MS-PL": 0,
   "Microsoft Public License": 0,
 
-  "MIT": 1,
+  MIT: 1,
   "MIT License": 1,
 
   "MPL-2.0": 0,
@@ -92,19 +92,19 @@ const licenseScoreMap: { [key: string]: number } = {
   "OSL-3.0": 0,
   "Open Software License 3.0": 0,
 
-  "PostgreSQL": 1,
+  PostgreSQL: 1,
   "PostgreSQL License": 1,
 
   "OFL-1.1": 0,
   "SIL Open Font License 1.1": 0,
 
-  "NCSA": 1,
+  NCSA: 1,
   "University of Illinois/NCSA Open Source License": 1,
 
-  "Unlicense": 1,
+  Unlicense: 1,
   "The Unlicense": 1,
 
-  "Zlib": 1,
+  Zlib: 1,
   "zLib License": 1,
 };
 
