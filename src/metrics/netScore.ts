@@ -61,11 +61,6 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
                 measureLatency(calculateBusFactor,gitInfo),
                 {value:0, latency: 0}
               ])
-    // const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, clonedPath);
-    // const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
-    // const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
-    // const busFactor = await measureLatency(calculateBusFactor,gitInfo);
-    // const correctnessScore = {value:0, latency: 0}; //await measureLatency(calculateCorrectness, gitInfo, clonedPath);
     
     const removeResult = await removeRepo(clonedPath);
     assert(removeResult, 'Failed to remove cloned repository');
@@ -80,17 +75,17 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     return {
       URL: url,
       NetScore: parseFloat(NetScore.toFixed(3)),
-      NetScore_Latency: parseFloat(net_time.toFixed(3)), // Example latency value, replace with actual if available
+      NetScore_Latency: parseFloat(net_time.toFixed(3)),
       RampUp: parseFloat(rampUpTime.value.toFixed(3)),
-      RampUp_Latency: parseFloat((rampUpTime.latency + api_time + clone_time).toFixed(3)), // Example latency value, replace with actual if available
+      RampUp_Latency: parseFloat((rampUpTime.latency + api_time + clone_time).toFixed(3)), 
       Correctness: parseFloat(correctnessScore.value.toFixed(3)),
-      Correctness_Latency: parseFloat((correctnessScore.latency + api_time + clone_time).toFixed(3)), // Example latency value, replace with actual if available
+      Correctness_Latency: parseFloat((correctnessScore.latency + api_time + clone_time).toFixed(3)), 
       BusFactor: parseFloat(busFactor.value.toFixed(3)),
-      BusFactor_Latency: parseFloat((busFactor.latency + api_time).toFixed(3)), // Example latency value, replace with actual if available
+      BusFactor_Latency: parseFloat((busFactor.latency + api_time).toFixed(3)), 
       ResponsiveMaintainer: parseFloat(responsiveness.value.toFixed(3)),
-      ResponsiveMaintainer_Latency: parseFloat((responsiveness.latency + api_time).toFixed(3)), // Example latency value, replace with actual if available
+      ResponsiveMaintainer_Latency: parseFloat((responsiveness.latency + api_time).toFixed(3)), 
       License: parseFloat(licenseCompatibility.value.toFixed(3)),
-      License_Latency: parseFloat((licenseCompatibility.latency + api_time).toFixed(3)) // Example latency value, replace with actual if available
+      License_Latency: parseFloat((licenseCompatibility.latency + api_time).toFixed(3)) 
     };
   } catch (error) {
     console.error('GetNetScore: Failed to get repository info:', error);

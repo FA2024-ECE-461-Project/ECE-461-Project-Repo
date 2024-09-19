@@ -121,7 +121,6 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
     const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
     
     let license = data.license?.name || 'No license';
-    // let license = licenseMap[data.license?.spdx_id] || 'No license';
     const descrption = data.description || 'No description';
     if (license === 'No license' || license === 'Other') {
       const licenseFromPackageJson = await getLicenseFromPackageJson(owner, repo);
@@ -195,13 +194,10 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
       allIssues = allIssues.concat(issues);
   
       // Check if there are more commits to fetch
-      //console.log(pageIssues);
       if (issues.length < perPage || new Date(issues[issues.length - 1].created_at) < startDate) {
         break;
       }
     }
-
-    //console.log(allIssues.length);
 
     //return the repository details
     const repoDetails: RepoDetails = {
