@@ -23,6 +23,7 @@ export interface RepoDetails {
   descrption: string;
   commitsData: any[];
   issuesData: any[];
+  contributorsData: any[];
 }
 
 // License map
@@ -116,7 +117,7 @@ export async function getGithubInfo(
   repo: string,
 ): Promise<RepoDetails> {
   try {
-    const url = `https://api.github.com/repos/${owner}/${repo}`;
+    const url = `${GITHUB_API_URL}/${owner}/${repo}`;
     const response = await axios.get(url, {
       headers: {
         Authorization: `token ${process.env.GITHUB_TOKEN}`,
@@ -167,23 +168,25 @@ export async function getGithubInfo(
     }
 
     const currentDate = new Date();
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
-    const startDate = created_at > sixMonthsAgo ? created_at : sixMonthsAgo;
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(currentDate.getMonth() - 12);
+    const startDate =
+      created_at > twelveMonthsAgo ? created_at : twelveMonthsAgo;
 
     const perPage = 100;
     let allCommits: any[] = [];
     let allIssues: any[] = [];
 
-    // Fetch latest 300 commits
+    // Fetch latest 500 commits
     for (let page = 1; page <= 5; page++) {
       // Fetch a page of 100 commits
       const commitsResponse = await axios.get(
-        `https://api.github.com/repos/${owner}/${repo}/commits`,
+        `${GITHUB_API_URL}/${owner}/${repo}/commits`,
         {
           params: {
             per_page: perPage,
             page: page,
+            since: startDate,
           },
           headers: {
             Authorization: `token ${process.env.GITHUB_TOKEN}`,
@@ -203,15 +206,16 @@ export async function getGithubInfo(
       }
     }
 
-    // Fetch latest 300 issues
+    // Fetch latest 500 issues
     for (let page = 1; page <= 5; page++) {
       const issuesResponse = await axios.get(
-        `https://api.github.com/repos/${owner}/${repo}/issues`,
+        `${GITHUB_API_URL}/${owner}/${repo}/issues`,
         {
           params: {
             state: "all",
             per_page: perPage,
             page: page,
+            since: startDate,
           },
           headers: {
             Authorization: `token ${process.env.GITHUB_TOKEN}`,
@@ -230,6 +234,14 @@ export async function getGithubInfo(
       }
     }
 
+    // Get contributors data
+    const contributorsUrl = `${GITHUB_API_URL}/${owner}/${repo}/stats/contributors`;
+    const contributorsData = await axios.get(contributorsUrl, {
+      headers: {
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      },
+    });
+
     //return the repository details
     const repoDetails: RepoDetails = {
       owner: owner,
@@ -242,6 +254,7 @@ export async function getGithubInfo(
       descrption: descrption,
       commitsData: allCommits,
       issuesData: allIssues,
+      contributorsData: contributorsData.data,
     };
 
     return repoDetails;
