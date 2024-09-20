@@ -3,6 +3,7 @@ import * as dotenv from "dotenv";
 dotenv.config(); // Load environment variables from a .env file into process.env
 import axios, { all } from "axios";
 import { log } from "../logger";
+import { exit } from "process";
 
 const GITHUB_API_URL = "https://api.github.com/repos";
 
@@ -259,7 +260,8 @@ export async function getGithubInfo(
 
     return repoDetails;
   } catch (error) {
-    log.error(`Failed to fetch data for ${owner}/${repo}:`, error);
-    throw error;
+    log.error(`Error: ${error} - Failed to fetch data for ${owner}/${repo}:`);
+    console.error(`Error ${error} - Failed to fetch data for ${owner}/${repo}:`);
+    process.exit(1);
   }
 }
