@@ -33,6 +33,13 @@ describe("test getGithubInfo", () => {
         description: "Some description",
       },
     };
+    const mockCommitResponse = {
+      data: [
+        {
+          commit: {
+          }
+        }
+    };
     // mock the axios.get call
     mockedAxios.get.mockResolvedValueOnce(mockResponse);
 
