@@ -1,4 +1,4 @@
-import {cloneRepo, removeRepo} from "../src/metrics/clone_repo";
+import { cloneRepo, removeRepo } from "../src/metrics/clone_repo";
 import { calculateCorrectness } from "../src/metrics/correctness";
 import exp from "constants";
 
@@ -14,9 +14,8 @@ beforeAll(async () => {
   // mockedGit.clone.mockResolvedValueOnce(clonedPath);
 });
 
-describe('correctness score tests', () => {
-  test('correctness with valid cloned repo', async () => {
-  });
+describe("correctness score tests", () => {
+  test("correctness with valid cloned repo", async () => {});
 });
 
 afterAll(async () => {
