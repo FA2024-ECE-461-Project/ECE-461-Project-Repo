@@ -1,22 +1,21 @@
-import {getGitHubRepoFromNpmUrl} from '../apiProcess/npmApiProcess';
+import { getGitHubRepoFromNpmUrl } from "../apiProcess/npmApiProcess";
 // Enum for URL types
 export enum UrlType {
-  GitHub = 'github',
-  npm = 'npm',
-  Invalid = 'invalid'
+  GitHub = "github",
+  npm = "npm",
+  Invalid = "invalid",
 }
 
 //github repo info
 interface RepoInfo {
-    owner: string;
-    repo: string;
-  }
+  owner: string;
+  repo: string;
+}
 
 // Function to determine if the link is a GitHub, npm, or invalid URL
 export function checkUrlType(url: string): UrlType {
   const githubPattern = /^(https?:\/\/)?(www\.)?github\.com\/[^\/]+\/[^\/]+/;
   const npmPattern = /^(https?:\/\/)?(www\.)?npmjs\.com\/package\/[^\/]+/;
-  
 
   if (githubPattern.test(url)) {
     return UrlType.GitHub;
@@ -29,11 +28,15 @@ export function checkUrlType(url: string): UrlType {
 
 export function convertSshToHttps(sshUrl: string): string {
   // Check if the URL is an SSH GitHub URL
-  if (sshUrl.startsWith('ssh://git@github.com/') || sshUrl.startsWith('git@github.com:')) {
+  if (
+    sshUrl.startsWith("ssh://git@github.com/") ||
+    sshUrl.startsWith("git@github.com:")
+  ) {
     // Replace the SSH prefix with the HTTPS prefix and remove the optional .git suffix
-    return sshUrl.replace(/^ssh:\/\/git@github.com\//, 'https://github.com/')
-                 .replace(/^git@github.com:/, 'https://github.com/')
-                 .replace(/\.git$/, '');
+    return sshUrl
+      .replace(/^ssh:\/\/git@github.com\//, "https://github.com/")
+      .replace(/^git@github.com:/, "https://github.com/")
+      .replace(/\.git$/, "");
   }
   // If the URL is not an SSH URL, return input URL
   return sshUrl;
@@ -44,7 +47,7 @@ export function extractOwnerAndRepo(gitHubUrl: string): RepoInfo {
   const match = gitHubUrl.match(regex);
 
   if (!match || match.length < 3) {
-    throw new Error('Invalid GitHub URL');
+    throw new Error("Invalid GitHub URL");
   }
 
   const owner = match[1];
@@ -68,27 +71,30 @@ export function extractPackageNameFromUrl(url: string): string {
   const githubMatch = trimmedUrl.match(githubRegex);
 
   if (githubMatch) {
-    const {owner, repo} = extractOwnerAndRepo(url);
-    return  repo;// Return the GitHub RepoName
+    const { owner, repo } = extractOwnerAndRepo(url);
+    return repo; // Return the GitHub RepoName
   }
 
-  throw new Error('Invalid URL');
+  throw new Error("Invalid URL");
 }
 
-export async function processUrl(UrlType: 'github' | 'npm' | 'invalid', url: string): Promise<RepoInfo> {
-  if (UrlType === 'invalid') {
-    throw new Error('Invalid URL type');
+export async function processUrl(
+  UrlType: "github" | "npm" | "invalid",
+  url: string,
+): Promise<RepoInfo> {
+  if (UrlType === "invalid") {
+    throw new Error("Invalid URL type");
   }
 
-  let owner: string = '';
-  let repo: string = '';
+  let owner: string = "";
+  let repo: string = "";
 
-  if (UrlType === 'npm') {
+  if (UrlType === "npm") {
     const packageName = extractPackageNameFromUrl(url);
     const giturl = await getGitHubRepoFromNpmUrl(packageName);
     const httpsUrl = convertSshToHttps(giturl);
     ({ owner, repo } = extractOwnerAndRepo(httpsUrl ?? ""));
-  } else if (UrlType === 'github') {
+  } else if (UrlType === "github") {
     ({ owner, repo } = extractOwnerAndRepo(url));
   }
 

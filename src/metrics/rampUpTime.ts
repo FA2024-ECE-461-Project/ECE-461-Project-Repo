@@ -1,8 +1,12 @@
-import { RepoDetails } from '../apiProcess/gitApiProcess';
-import * as fs from 'fs';
-import * as path from 'path';
+import { RepoDetails } from "../apiProcess/gitApiProcess";
+import { log } from "../logger";
+import * as fs from "fs";
+import * as path from "path";
 
-export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Promise<number> {
+export async function calculateRampUpTime(
+  metrics: RepoDetails,
+  dir: string,
+): Promise<number> {
   try {
     // Analyze the repository
     let score = 0;
@@ -11,17 +15,18 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
     const readmeScore = checkReadme(dir) ? 0.1 : 0;
     score += readmeScore;
 
-    // (0.3) Installation instruction (keywords: install, test, launch, run)
-    const installScore = checkInstallationInstructions(dir) ? 0.3 : 0;
+    // (0.4) Installation instruction (keywords: install, test, launch, run, example)
+    const installScore = checkInstallationInstructions(dir) ? 0.4 : 0;
     score += installScore;
 
-    // (0.6) Code-to-comment ratio = #comments / (lines of code / 8)
+    // (0.5) Code-to-comment ratio = #comments / (lines of code / 8)
     const codeCommentRatioScore = calculateCodeCommentRatio(dir);
     score += codeCommentRatioScore;
 
-    return (1 - score);
+    log.info(`Finished Calculating ramp-up time. Exiting...`);
+    return score;
   } catch (error) {
-    console.error('Error calculating ramp-up time:', error);
+    console.error("Error calculating ramp-up time:", error);
     return 0;
   }
 }
@@ -29,18 +34,24 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
 // Function to check for the existence of a README file
 function checkReadme(dir: string): boolean {
   const files = fs.readdirSync(dir);
-  const readmeFiles = files.filter(file => /^README(\.md|\.txt)?$/i.test(file));
+  const readmeFiles = files.filter((file) =>
+    /^README(\.md|\.txt)?$/i.test(file),
+  );
   return readmeFiles.length > 0;
 }
 
 // Function to check for installation instructions in README files
 function checkInstallationInstructions(dir: string): boolean {
   const files = fs.readdirSync(dir);
-  const readmeFiles = files.filter(file => /^README(\.md|\.txt)?$/i.test(file));
-  const keywords = ['install', 'test', 'launch', 'run'];
+  const readmeFiles = files.filter((file) =>
+    /^README(\.md|\.txt)?$/i.test(file),
+  );
+  const keywords = ["install", "test", "launch", "run", "example"];
 
   for (const readmeFile of readmeFiles) {
-    const content = fs.readFileSync(path.join(dir, readmeFile), 'utf8').toLowerCase();
+    const content = fs
+      .readFileSync(path.join(dir, readmeFile), "utf8")
+      .toLowerCase();
     for (const keyword of keywords) {
       if (content.includes(keyword)) {
         return true;
@@ -53,18 +64,34 @@ function checkInstallationInstructions(dir: string): boolean {
 // Function to calculate the code-to-comment ratio score
 function calculateCodeCommentRatio(dir: string): number {
   // Get all code files in the repository
-  console.log('Calculating code-to-comment ratio score...');
+  console.log("Calculating code-to-comment ratio score...");
   const allFiles = getAllFiles(dir);
-  console.log('got all files');
-  const codeExtensions = ['.js', '.ts', '.py', '.java', '.c', '.cpp', '.cs', '.rb', '.go', '.php', '.swift', '.kt', '.kts'];
-  const codeFiles = allFiles.filter(file => codeExtensions.includes(path.extname(file).toLowerCase()));
+  console.log("got all files");
+  const codeExtensions = [
+    ".js",
+    ".ts",
+    ".py",
+    ".java",
+    ".c",
+    ".cpp",
+    ".cs",
+    ".rb",
+    ".go",
+    ".php",
+    ".swift",
+    ".kt",
+    ".kts",
+  ];
+  const codeFiles = allFiles.filter((file) =>
+    codeExtensions.includes(path.extname(file).toLowerCase()),
+  );
 
   let totalLines = 0;
   let totalComments = 0;
 
   for (const file of codeFiles) {
-    const content = fs.readFileSync(file, 'utf8');
-    const lines = content.split('\n');
+    const content = fs.readFileSync(file, "utf8");
+    const lines = content.split("\n");
     totalLines += lines.length;
     const ext = path.extname(file).toLowerCase();
     totalComments += countCommentLines(lines, ext);
@@ -76,13 +103,17 @@ function calculateCodeCommentRatio(dir: string): number {
 
   const ratio = totalComments / (totalLines / 8);
   const normalizedRatio = Math.min(ratio, 1);
-  const score = normalizedRatio * 0.6;
+  const score = normalizedRatio * 0.5;
 
   return score;
 }
 
 // Helper function to get all files in the repository directory
-function getAllFiles(dir: string, files?: string[], visitedPaths?: Set<string>): string[] {
+function getAllFiles(
+  dir: string,
+  files?: string[],
+  visitedPaths?: Set<string>,
+): string[] {
   files = files || [];
   visitedPaths = visitedPaths || new Set();
 
@@ -117,24 +148,23 @@ function getAllFiles(dir: string, files?: string[], visitedPaths?: Set<string>):
   return files;
 }
 
-
 // Function to count the number of comment lines in code files
 function countCommentLines(lines: string[], ext: string): number {
-  let singleLineComment = '//';
-  let multiLineCommentStart = '/*';
-  let multiLineCommentEnd = '*/';
+  let singleLineComment = "//";
+  let multiLineCommentStart = "/*";
+  let multiLineCommentEnd = "*/";
 
   // Adjust comment syntax based on file extension
   switch (ext) {
-    case '.py':
-      singleLineComment = '#';
+    case ".py":
+      singleLineComment = "#";
       multiLineCommentStart = `'''`;
       multiLineCommentEnd = `'''`;
       break;
-    case '.rb':
-      singleLineComment = '#';
-      multiLineCommentStart = '=begin';
-      multiLineCommentEnd = '=end';
+    case ".rb":
+      singleLineComment = "#";
+      multiLineCommentStart = "=begin";
+      multiLineCommentEnd = "=end";
       break;
     // Add more languages if needed
   }
