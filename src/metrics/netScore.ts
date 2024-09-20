@@ -57,7 +57,7 @@ export async function GetNetScore(
       await Promise.all([
         measureLatency(calculateLicenseCompatibility, gitInfo),
         measureLatency(calculateBusFactor, gitInfo),
-        { value: 0, latency: 0 },
+        measureLatency(calculateCorrectness, gitInfo, clonedPath),
       ]);
 
     const removeResult = await removeRepo(clonedPath);

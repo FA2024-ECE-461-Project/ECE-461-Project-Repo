@@ -63,10 +63,7 @@ function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
     (issue) => issue.state === "closed",
   );
 
-  if (
-    issuesOpenedPast6Months.length === 0 ||
-    closedIssuesPast6Months.length === 0
-  ) {
+  if (issuesOpenedPast6Months.length === 0 || closedIssuesPast6Months.length === 0) {
     issuRatio = 0;
   } else {
     issuRatio = closedIssuesPast6Months.length / issuesOpenedPast6Months.length;
@@ -88,7 +85,7 @@ async function __findTestOrSrc(
   if (targetFolderName === "test") {
     keywrods = ["test", "tests", "spec", "__tests__"];
   } else if (targetFolderName === "src") {
-    keywrods = ["src", "source", "lib", "app"];
+    keywrods = ["src", "source", "lib", "app", "package"];
   } else {
     throw new Error(
       'Invalid target folder name, only "test" and "src" are allowed',
@@ -133,6 +130,31 @@ async function __countFilesInDirectory(
   return count;
 }
 
+async function _getCIFilesScore(clonedPath: string, ciFileScore: number = 0): Promise<number> {
+  // recursively search for CI/CD configuration files in entire repository
+  if(!fs.existsSync(clonedPath)) {
+    console.error("clone path does not exist");
+    return -1;
+  }
+  const ciFiles = [".travis.yml", "circle.yml", "Jenkinsfile", "azure-pipelines.yml", ".github/workflows"];
+  const filesInRepo = await fs.promises.readdir(clonedPath, {withFileTypes: true});
+  for (const file of filesInRepo) {
+    if(file.isDirectory()) {
+      const subDirPath = path.join(clonedPath, file.name);
+      ciFileScore = await _getCIFilesScore(subDirPath);
+    } else if(ciFileScore === 0.8) {
+      // early return statement if one single CI/CD configuration file was found
+      return ciFileScore;
+    } else if(ciFiles.includes(file.name)) { // if file is a CI/CD configuration file: score it 0.8
+      return 0.8;
+    }
+    else {
+      return 0;
+    }
+  }
+  return ciFileScore;
+}
+
 /* @param clonedPath: string - the path of the cloned repository
  *  @returns number - the coverage score of the repository
  *  compute coverageScore specified by clonedPath based on the following criteria:
@@ -147,22 +169,7 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   }
 
   // Check for CI/CD configuration files
-  const ciFiles = [
-    ".travis.yml",
-    "circle.yml",
-    "Jenkinsfile",
-    "azure-pipelines.yml",
-    ".github/workflows",
-  ];
-  let coverageScore = 0;
-  for (const ciFile of ciFiles) {
-    const ciFilePath = path.join(clonedPath, ciFile);
-    if (fs.existsSync(ciFilePath)) {
-      // if any of the CI/CD files exist, set coverageScore to 0.8
-      coverageScore = 0.8;
-      break;
-    }
-  }
+  let coverageScore = await _getCIFilesScore(clonedPath); // should get 0 or 0.8
 
   // find test and src folders
   const [testFolderPath, srcFolderPath] = await Promise.all([
@@ -172,13 +179,14 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   if (srcFolderPath === null) {
     //something MUST be wrong if clonedPath specifies a package repo without a src folder but have CI/CD
     //files setup
+    console.log(`No src folder found for ${clonedPath}`);
     return 0;
   }
   if (testFolderPath === null) {
     //has a src folder but no test folder ⇒ coverageScore = 0
+    console.log(`No test folder found for ${clonedPath}`);
     return 0;
   }
-
   // compute the ratio of test files to source files
   const [numTests, numSrc] = await Promise.all([
     __countFilesInDirectory(testFolderPath),
@@ -196,7 +204,7 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
       coverageScore += 0.2 * (1 - penaltyRatio);
     }
   } else {
-    coverageScore += (0.2 * numTests) / numSrc;
+    coverageScore += 0.2 * (numTests / numSrc);
   }
 
   return coverageScore;
