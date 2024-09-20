@@ -62,7 +62,7 @@ export async function GetNetScore(
       ]);
 
     const removeResult = await removeRepo(clonedPath);
-    assert(removeResult, "Failed to remove cloned repository");
+    //assert(removeResult, "Failed to remove cloned repository");
     //calculate the NetScore
     const NetScore =
       0.2 * correctnessScore.value +
