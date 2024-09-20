@@ -44,6 +44,7 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
     //get clone time
     let clone_time = (new Date().getTime() - start_clone) / 1000;
     
+    // Measure the latency of each metric calculation
     const [rampUpTime, 
            responsiveness, 
            ] = await Promise.all(
@@ -61,14 +62,10 @@ export async function GetNetScore(owner: string, repo: string, url: string): Pro
                 measureLatency(calculateBusFactor,gitInfo),
                 {value:0, latency: 0}
               ])
-    // const rampUpTime = await measureLatency(calculateRampUpTime, gitInfo, clonedPath);
-    // const responsiveness = await measureLatency(calculateResponsiveness,gitInfo);
-    // const licenseCompatibility = await measureLatency(calculateLicenseCompatibility,gitInfo);
-    // const busFactor = await measureLatency(calculateBusFactor,gitInfo);
-    // const correctnessScore = {value:0, latency: 0}; //await measureLatency(calculateCorrectness, gitInfo, clonedPath);
-    
+
     const removeResult = await removeRepo(clonedPath);
     assert(removeResult, 'Failed to remove cloned repository');
+
     //calculate the NetScore
     const NetScore = (0.2)*correctnessScore.value + (0.2)*busFactor.value + (0.1)*licenseCompatibility.value + 
     (0.3)*responsiveness.value + (0.2)*rampUpTime.value;

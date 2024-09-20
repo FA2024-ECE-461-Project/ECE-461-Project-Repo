@@ -28,6 +28,7 @@ export async function cli() {
 
     // Process each URL
     for (let url of urls) {
+      // console.log(`Processing URL: ${url}`);
       const urlType = checkUrlType(url);
       const rawUrl = url;
       url = rawUrl.trim(); 

@@ -1,5 +1,4 @@
 //Calculate Responsiveness
-import { time } from 'node:console';
 import {RepoDetails} from '../apiProcess/gitApiProcess';
 
 export function calculateResponsiveness(metrics: RepoDetails): number {

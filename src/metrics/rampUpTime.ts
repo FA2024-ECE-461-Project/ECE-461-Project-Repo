@@ -1,8 +1,10 @@
 import { RepoDetails } from '../apiProcess/gitApiProcess';
+import { log } from '../logger';
 import * as fs from 'fs';
 import * as path from 'path';
 
 export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Promise<number> {
+  log.info('Calculating ramp-up time...');
   try {
     // Analyze the repository
     let score = 0;
@@ -19,6 +21,7 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
     const codeCommentRatioScore = calculateCodeCommentRatio(dir);
     score += codeCommentRatioScore;
 
+    log.info(`Finished Calculating ramp-up time. Exiting...`);
     return score;
   } catch (error) {
     console.error('Error calculating ramp-up time:', error);

@@ -1,6 +1,6 @@
 //Check if package contain valid license
 import {RepoDetails} from '../apiProcess/gitApiProcess';
-
+import {log} from '../logger';
 // License map containing SPDX identifiers and their corresponding scores
 const licenseScoreMap: { [key: string]: number } = {
   // SPDX and full license names from your list
@@ -111,14 +111,17 @@ const licenseScoreMap: { [key: string]: number } = {
 
 export function calculateLicenseCompatibility(metrics: RepoDetails): number {
   // Extract the license from the RepoDetails object
+  log.info(`Calculating license compatibility...`);
   const license = metrics.license;
 
   // Check if the exact license exists in the licenseScoreMap
   if (license && licenseScoreMap.hasOwnProperty(license)) {
     // Return the score if the license matches
+    log.info(`Finished calculating license compatibility. Exiting...`);
     return licenseScoreMap[license];
   }
 
   // Return 0 if no valid license is found in the map
+  log.info(`No valid license found. Exiting...`);
   return 0;
 }
