@@ -24,11 +24,13 @@
   },
   "dependencies": {
     "axios": "^1.7.7",
+    "bottleneck": "^2.19.5",
     "dotenv": "^16.4.5",
     "eslint": "^9.10.0",
     "exec": "^0.2.1",
     "fs": "^0.0.1-security",
     "isomorphic-git": "^1.27.1",
+    "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "tslog": "^4.9.3",
     "typescript": "^5.5.4"

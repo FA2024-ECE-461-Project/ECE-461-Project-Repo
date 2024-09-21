@@ -1,6 +1,6 @@
 //Check if package contain valid license
-import {RepoDetails} from '../apiProcess/gitApiProcess';
-import {log} from '../logger';
+import { RepoDetails } from "../apiProcess/gitApiProcess";
+import { log } from "../logger";
 // License map containing SPDX identifiers and their corresponding scores
 const licenseScoreMap: { [key: string]: number } = {
   // SPDX and full license names from your list

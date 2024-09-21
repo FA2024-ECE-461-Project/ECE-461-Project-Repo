@@ -14,9 +14,9 @@ export const log = new Logger({
 
 // Set log level based on environment variable
 if (process.env.LOG_LEVEL === "1") {
-	log.settings.minLevel = 3;   // information messages
+  log.settings.minLevel = 3; // information messages
 } else if (process.env.LOG_LEVEL === "2") {
-	log.settings.minLevel = 2;   //debug messages
+  log.settings.minLevel = 2; //debug messages
 }
 
 log.attachTransport((logObj) => {
