@@ -109,6 +109,13 @@ const licenseScoreMap: { [key: string]: number } = {
   "zLib License": 1,
 };
 
+/*
+  Function Name: calculateLicenseCompatibility
+  Description: This function calculates the license compatibility score for a repository based on the license found in the `RepoDetails`.
+  @params: 
+    - metrics: RepoDetails - The repository details containing the license information.
+  @returns: number - The license compatibility score based on the license, or 0 if no valid license is found.
+*/
 export function calculateLicenseCompatibility(metrics: RepoDetails): number {
   // Extract the license from the RepoDetails object
   log.info(`Calculating license compatibility...`);

@@ -3,6 +3,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { log } from "../logger";
 
+/*
+  Function Name: calculateRampUpTime
+  Description: This function calculates the ramp-up time score of a repository based on the presence of a README, 
+               installation instructions, and the code-to-comment ratio.
+  @params: 
+    - metrics: RepoDetails - The repository details used for scoring
+    - dir: string - The directory where the repository is located
+  @returns: number - The calculated ramp-up time score.
+*/
 export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Promise<number> {
   try {
     log.info(`Starting ramp-up time calculation for directory: ${dir}`);
@@ -32,7 +41,14 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
   }
 }
 
-// Function to check for the existence of a README file
+
+/*
+  Function Name: checkReadme
+  Description: Checks whether the README file exists in the given directory.
+  @params: 
+    - dir: string - The directory to search for a README file.
+  @returns: boolean - True if a README file is found, false otherwise.
+*/
 function checkReadme(dir: string): boolean {
   log.info(`Checking for README file in directory: ${dir}`);
   const files = fs.readdirSync(dir);
@@ -41,7 +57,14 @@ function checkReadme(dir: string): boolean {
   return readmeFiles.length > 0;
 }
 
-// Function to check for installation instructions in README files
+
+/*
+  Function Name: checkInstallationInstructions
+  Description: Checks for installation instructions in README files in the given directory.
+  @params: 
+    - dir: string - The directory to search for README files.
+  @returns: boolean - True if installation instructions are found, false otherwise.
+*/
 function checkInstallationInstructions(dir: string): boolean {
   log.info(`Checking for installation instructions in README files in directory: ${dir}`);
   const files = fs.readdirSync(dir);
@@ -65,7 +88,13 @@ function checkInstallationInstructions(dir: string): boolean {
   return false;
 }
 
-// Function to calculate the code-to-comment ratio score
+/*
+  Function Name: calculateCodeCommentRatio
+  Description: Calculates the code-to-comment ratio score for the given directory.
+  @params: 
+    - dir: string - The directory to search for code files.
+  @returns: number - The calculated code-to-comment ratio score.
+*/
 function calculateCodeCommentRatio(dir: string): number {
 
   log.info('Calculating code-to-comment ratio score...');
@@ -101,7 +130,15 @@ function calculateCodeCommentRatio(dir: string): number {
   return score;
 }
 
-// Helper function to get all files in the repository directory
+/*
+  Function Name: getAllFiles
+  Description: Recursively retrieves all files in a directory.
+  @params: 
+    - dir: string - The directory to search for files.
+    - files: string[] - An array of file paths.
+    - visitedPaths: Set<string> - A set of visited paths to avoid cycles.
+  @returns: string[] - An array of file paths.
+*/
 function getAllFiles(
   dir: string,
   files?: string[],
@@ -142,7 +179,14 @@ function getAllFiles(
   return files;
 }
 
-// Function to count the number of comment lines in code files
+/*
+  Function Name: countCommentLines
+  Description: Counts the number of comment lines in the given lines of code based on the file extension.
+  @params: 
+    - lines: string[] - An array of lines of code.
+    - ext: string - The file extension.
+  @returns: number - The number of comment lines.
+*/
 function countCommentLines(lines: string[], ext: string): number {
   let singleLineComment = "//";
   let multiLineCommentStart = "/*";
