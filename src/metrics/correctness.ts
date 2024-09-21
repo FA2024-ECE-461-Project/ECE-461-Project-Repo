@@ -20,6 +20,10 @@ async function calculateCorrectness(
   metric: RepoDetails,
   clonedPath: string,
 ): Promise<number> {
+  if (!fs.existsSync(clonedPath)) {
+    throw new Error("Cloned path does not exist");
+  }
+
   // dynamic analysis: compute test coverage score
   const testCoverageScore = await _getCoverageScore(clonedPath);
 
@@ -196,10 +200,6 @@ async function _getCIFilesScore(clonedPath: string): Promise<number> {
  * ensure the coverageScore is between 0 and 1.
  * */
 async function _getCoverageScore(clonedPath: string): Promise<number> {
-  if (!fs.existsSync(clonedPath)) {
-    throw new Error("Cloned path does not exist");
-  }
-
   // Check for CI/CD configuration files
   let ciCdScore = await _getCIFilesScore(clonedPath); // should get 0 or 0.8
   log.info(`CI/CD configuration file score: ${ciCdScore}`);
@@ -252,17 +252,4 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   return coverageScore;
 }
 
-/* @param path: string - the path of the repository
- *  @returns number - the lint score of the repository
- * clone the repo, run the linter, store results to a file,
- * parse the results and return the score
- * */
-function _getLintScore(path: string): number {
-  // clone repo with isomorphic-git
-
-  //run linter: and store output to a file
-  //parse linter output
-  //return score
-  return 0;
-}
 export { calculateCorrectness };
