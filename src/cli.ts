@@ -6,6 +6,7 @@ import { checkUrlType, processUrl } from "./utils/urlUtils";
 import { readUrlsFromFile } from "./utils/fileUtils";
 import { GetNetScore } from "./metrics/netScore";
 import { log } from "./logger";
+import { exit } from "process";
 // Main function to handle the asynchronous logic
 export async function cli() {
   // Create a logger instance
@@ -28,7 +29,7 @@ export async function cli() {
 
     // Process each URL
     for (let url of urls) {
-      // console.log(`Processing URL: ${url}`);
+      log.info(`Processing URL: ${url}`);
       const urlType = checkUrlType(url);
       const rawUrl = url;
       url = rawUrl.trim();
@@ -39,9 +40,11 @@ export async function cli() {
         console.log(JSON.stringify(metrics, null, 2)); //change third argument to 0 to remove indentation for evaluation
       } catch (error) {
         log.error(`Error processing URL ${url}:`, error);
+        console.log(`Error processing URL ${url}:`, error);
+        process.exit(1);
       }
     }
   } catch (error) {
-    log.error(error);
+    log.error(`Unable to read urls`, error);
   }
 }

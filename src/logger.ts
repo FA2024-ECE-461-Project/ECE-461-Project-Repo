@@ -26,7 +26,6 @@ log.attachTransport((logObj) => {
 	}
 	if (!existsSync(process.env.LOG_FILE)) {
 		console.error("LOG_FILE does not exist");
-		
 		process.exit(1);
 	}
   appendFileSync(process.env.LOG_FILE, JSON.stringify(logObj) + "\n");
