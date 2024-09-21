@@ -34,4 +34,4 @@ To start the main program and analyze npm packages based on URLs provided in a f
 ./run URL_FILE
 ```
 
-Here, URL_FILE refers to a text file (such as url.txt) that contains a list of npm package URLs or names. The program will process each package, compute its score, and provide a detailed report on the quality and popularity of each package.
+Here, URL_FILE refers to a text file (such as url.txt) that contains a list of npm package URLs or names. The program will process each package, compute its score, and provide a detailed report on the quality of each package.
