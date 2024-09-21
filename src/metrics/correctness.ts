@@ -37,7 +37,9 @@ async function calculateCorrectness(
   return 0.5 * testCoverageScore + 0.5 * openToClosedIssueRatio;
 }
 
-//helpers
+/* @param metric: RepoDetails - the returned output from getGitRepoDetails
+ *  @returns number - the ratio of closed to open issues in the past 6 months
+ * */
 function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
   // Check if there are any commits available
   // Setting default Values
@@ -118,6 +120,11 @@ async function __findSrc( directoryPath: string, maxDepth: number = 2): Promise<
   return null;
 }
 
+/*  Searching the entire repo in BFS manner for the test and src folders
+ *  @param directoryPath: string - the path of the directory to search
+ *  @param maxDepth: number - the maximum depth to search for the folder: defalut to 2
+ *  @returns string | null - the path of the test folder or null if not found
+ * */
 async function __findTest( directoryPath: string, maxDepth: number = 2): Promise<string | null> {
   const testPattern = /^(test|tests|spec|__tests__|__test__)$/;
   const queue: { path: string, depth: number }[] = [{ path: directoryPath, depth: 0 }];
@@ -142,6 +149,11 @@ async function __findTest( directoryPath: string, maxDepth: number = 2): Promise
   return null;
 }
 
+/*  Count the number of files in a directory
+ *  @param dirPath: string - the path of the directory to search
+ *  @param count: number - the number of files in the directory
+ *  @returns number - the number of files in the directory
+ * */
 async function __countFilesInDirectory(
   dirPath: string,
   count: number = 0,
@@ -164,6 +176,10 @@ async function __countFilesInDirectory(
   return count;
 }
 
+/*  Get the score for the presence of CI/CD configuration files
+ *  @param clonedPath: string - the path of the cloned repository
+ *  @returns number - the score of the repository based on the presence of CI/CD configuration files
+ * */
 async function _getCIFilesScore(clonedPath: string): Promise<number> {
   if (!fs.existsSync(clonedPath)) {
     console.error("clone path does not exist");

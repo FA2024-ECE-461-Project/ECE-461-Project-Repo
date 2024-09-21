@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import { Logger } from "tslog";
-import { appendFileSync, existsSync, PathLike } from "fs";
+import { appendFileSync, existsSync, truncateSync, PathLike } from "fs";
 
 export const log = new Logger({
   name: "Logger",
@@ -15,6 +15,9 @@ if (!existsSync(logFilePath)) {
   process.exit(1);
 }
 
+// Clear the log file at the beginning of the script
+truncateSync(logFilePath, 0);
+
 //if LOG_LEVEL is 0, silence all logs
 //if LOG_LEVEL is 1, show information logs
 //if LOG_LEVEL is 2, show debug logs
@@ -27,13 +30,9 @@ if (process.env.LOG_LEVEL === "1") {
 }
 
 log.attachTransport((logObj) => {
-	if (process.env.LOG_FILE === undefined) {
-		console.error("LOG_FILE environment variable not set");
-		process.exit(1);
-	}
-	if (!existsSync(process.env.LOG_FILE)) {
-		console.error("LOG_FILE does not exist");
-		process.exit(1);
-	}
+  if (process.env.LOG_FILE === undefined) {
+    console.error("LOG_FILE environment variable not set");
+    process.exit(1);
+  }
   appendFileSync(process.env.LOG_FILE, JSON.stringify(logObj) + "\n");
 });
