@@ -81,25 +81,19 @@ function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
  *  @param maxDepth: number - the maximum depth to search for the folder: defalut to 2
  *  @returns string | null - the path of the test folder or null if not found
  * */
-
-async function __findTestOrSrc( directoryPath: string, targetFolderName: string, maxDepth: number = 2): Promise<string | null> 
-{
-  const testPattern = /^(test|tests|spec|__tests__|__test__)$/;
-  const srcPattern = /^(src|source|sources|lib|app|package|packages|main)$/;
+async function __findSrc( directoryPath: string, maxDepth: number = 2): Promise<string | null> {
   if(!fs.existsSync(directoryPath)) {
     return null;
   }
-  if(targetFolderName != "test" && targetFolderName != "src") {
-    return null;
-  }
-  // BFS for the test or src folder
+  // BFS for the src folder
+  const srcPattern = /^(src|source|sources|lib|app|package|packages|main)$/;
   const fileNames = await fs.promises.readdir(directoryPath, {withFileTypes: true});
   let folders = fileNames.filter((file) => file.isDirectory());
   let currentDepth = maxDepth;
   for(const folder of folders) {
-    if(testPattern.test(folder.name) || srcPattern.test(folder.name)) {
+    if(srcPattern.test(folder.name)) {
       const completePath = path.join(directoryPath, folder.name);
-      console.log(`Found ${targetFolderName} in ${completePath} `);
+      console.log(`found source in ${completePath}`);
       return completePath
     } else {
         // queue in subfolders if maxDepth has not been reached
@@ -111,7 +105,30 @@ async function __findTestOrSrc( directoryPath: string, targetFolderName: string,
         }
       }
   }
+  return null;
+}
 
+async function __findTest( directoryPath: string, maxDepth: number = 2): Promise<string | null> {
+  // BFS for the test folder
+  const testPattern = /^(test|tests|spec|__tests__|__test__)$/;
+  const fileNames = await fs.promises.readdir(directoryPath, {withFileTypes: true});
+  let folders = fileNames.filter((file) => file.isDirectory());
+  let currentDepth = maxDepth;
+  for(const folder of folders) {
+    if(testPattern.test(folder.name)) {
+      const completePath = path.join(directoryPath, folder.name);
+      console.log(`found test in ${completePath}`);
+      return completePath
+    } else {
+        // queue in subfolders if maxDepth has not been reached
+        const namesInFolder= await fs.promises.readdir(path.join(directoryPath, folder.name), {withFileTypes: true})
+        const subFolders = namesInFolder.filter((file) => file.isDirectory());
+        if(currentDepth > 0) {
+          folders = folders.concat(subFolders);
+          currentDepth -= 1;
+        }
+      }
+  }
   return null;
 }
 
@@ -175,12 +192,12 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   }
 
   // Check for CI/CD configuration files
-  let coverageScore = await _getCIFilesScore(clonedPath); // should get 0 or 0.8
-  console.log(`CI/CD configuration file score: ${coverageScore}`);
+  let ciCdScore = await _getCIFilesScore(clonedPath); // should get 0 or 0.8
+  console.log(`CI/CD configuration file score: ${ciCdScore}`);
   // find test and src folders
   const [testFolderPath, srcFolderPath] = await Promise.all([
-    __findTestOrSrc(clonedPath, "test"),
-    __findTestOrSrc(clonedPath, "src"),
+    __findTest(clonedPath),
+    __findSrc(clonedPath),
   ]);
   if (srcFolderPath === null) {
     //something MUST be wrong if clonedPath specifies a package repo without a src folder but have CI/CD
@@ -198,22 +215,31 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
     __countFilesInDirectory(testFolderPath),
     __countFilesInDirectory(srcFolderPath),
   ]);
-
+  
+  let repoScore = 0;
   // handle if there are more tests than source files
   if (numTests > numSrc) {
-    // when there are more tests than source files: first gauge how much more tests
-    // there are than source files ("penalty" for having more tests)
+    // when there are more tests than source files: first gauge how much more tests  there are than source files 
+    // then compute "penalty" for having more tests
     let penaltyRatio = (numTests - numSrc) / numSrc;
     if (penaltyRatio > 1) {
       //unreasonably many tests compared to source files
-      coverageScore = 0;
+      repoScore = 0;
     } else {
-      coverageScore += 0.2 * (1 - penaltyRatio);
+      repoScore += 0.2 * (1 - penaltyRatio);
     }
   } else {
-    coverageScore += 0.2 * (numTests / numSrc);
+    repoScore += 0.2 * (numTests / numSrc);
   }
 
+  // final coverage score calculation
+  let coverageScore = 0;
+  if(ciCdScore === 0.8) { // if trhere are CI/CD configuration files
+    coverageScore = ciCdScore + repoScore;
+  }
+  else { // use the entire (not weighted) repoScore as the coverage score
+    coverageScore = repoScore / 0.2;
+  }
   return coverageScore;
 }
 
