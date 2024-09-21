@@ -77,7 +77,6 @@ describe('calculateResponsiveness', () => {
     };
 
     const result = calculateResponsiveness(metrics);
-    console.log(metrics.issuesData.length);
     expect(result).toBeGreaterThan(0);
     expect(result).toBeLessThan(1);
   });
