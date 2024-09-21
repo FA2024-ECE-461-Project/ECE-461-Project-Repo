@@ -46,7 +46,7 @@ function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
     metric.issuesData[metric.issuesData.length - 1].created_at,
   );
   const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 1);
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   const startDateIssues =
     dateEarliestIssue > sixMonthsAgo ? dateEarliestIssue : sixMonthsAgo;
 
