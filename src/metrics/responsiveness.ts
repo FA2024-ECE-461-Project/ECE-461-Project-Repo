@@ -92,7 +92,6 @@ export function calculateResponsiveness(metrics: RepoDetails): number {
         closedIssuesPast6Months.length == 0
       )
     ) {
-      // Calculate avg week to close an issue
       ratioClosedToOpenIssues =
         closedIssuesPast6Months.length / issuesOpenedPast6Months.length;
       const totalTimeToCloseIssues = closedIssuesPast6Months.reduce(
@@ -102,18 +101,21 @@ export function calculateResponsiveness(metrics: RepoDetails): number {
             new Date(issue.created_at).getTime()),
         0,
       );
+
+
+      // Calculate avg week to close an issue
       const avgWeeksToCloseIssue =
         totalTimeToCloseIssues /
         millisecondsInAWeek /
         closedIssuesPast6Months.length;
 
-      // calculate avg weeks not lost x reciprocal weeks
       const weeksDifferenceIssues = _calculateWeeksDifference(
         currentDate,
         startDateIssues,
         millisecondsInAWeek,
       );
-
+      
+      // calculate avg weeks not lost x reciprocal weeks
       avgWeeksNotLostXReciprocalWeeks =
         (weeksDifferenceIssues - avgWeeksToCloseIssue) *
         (1 / weeksDifferenceIssues);
