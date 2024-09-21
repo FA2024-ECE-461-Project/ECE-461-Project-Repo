@@ -6,6 +6,7 @@ import { RepoDetails } from "../apiProcess/gitApiProcess";
 import * as path from "path";
 import * as util from "util";
 import * as dotenv from "dotenv";
+import { serialize } from "v8";
 dotenv.config(); // Load environment variables from a .env file into process.env
 
 /* @param metric: RepoDetails - the returned output from getGitRepoDetails
@@ -71,41 +72,47 @@ function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
   return issuRatio;
 }
 
-/*
- *  @param clonedPath: string - the path of the cloned repository
+
+
+
+/*  Searching the entire repo in BFS manner for the test and src folders
+ *  @param directoryPath: string - the path of the directory to search
+ *  @param targetFolderName: string - the name of the folder to search for
+ *  @param maxDepth: number - the maximum depth to search for the folder: defalut to 2
  *  @returns string | null - the path of the test folder or null if not found
  * */
 
-async function __findTestOrSrc(
-  directoryPath: string,
-  targetFolderName: string,
-): Promise<string | null> {
-  let keywrods: string[];
-
-  if (targetFolderName === "test") {
-    keywrods = ["test", "tests", "spec", "__tests__"];
-  } else if (targetFolderName === "src") {
-    keywrods = ["src", "source", "lib", "app", "package"];
-  } else {
-    throw new Error(
-      'Invalid target folder name, only "test" and "src" are allowed',
-    );
+async function __findTestOrSrc( directoryPath: string, targetFolderName: string, maxDepth: number = 2): Promise<string | null> 
+{
+  const testPattern = /^(test|tests|spec|__tests__|__test__)$/;
+  const srcPattern = /^(src|source|sources|lib|app|package|packages|main)$/;
+  if(!fs.existsSync(directoryPath)) {
+    return null;
   }
-
-  return new Promise((resolve, reject) => {
-    fs.readdir(directoryPath, { withFileTypes: true }, (err, files) => {
-      if (err) {
-        return reject(err);
-      }
-      // scan the directory for the target folder
-      for (const file of files) {
-        if (file.isDirectory() && keywrods.includes(file.name)) {
-          return resolve(path.join(directoryPath, file.name));
+  if(targetFolderName != "test" && targetFolderName != "src") {
+    return null;
+  }
+  // BFS for the test or src folder
+  const fileNames = await fs.promises.readdir(directoryPath, {withFileTypes: true});
+  let folders = fileNames.filter((file) => file.isDirectory());
+  let currentDepth = maxDepth;
+  for(const folder of folders) {
+    if(testPattern.test(folder.name) || srcPattern.test(folder.name)) {
+      const completePath = path.join(directoryPath, folder.name);
+      console.log(`Found ${targetFolderName} in ${completePath} `);
+      return completePath
+    } else {
+        // queue in subfolders if maxDepth has not been reached
+        const namesInFolder= await fs.promises.readdir(path.join(directoryPath, folder.name), {withFileTypes: true})
+        const subFolders = namesInFolder.filter((file) => file.isDirectory());
+        if(currentDepth > 0) {
+          folders = folders.concat(subFolders);
+          currentDepth -= 1;
         }
       }
-      resolve(null); //return null if target folder is not found
-    });
-  });
+  }
+
+  return null;
 }
 
 async function __countFilesInDirectory(
@@ -136,7 +143,7 @@ async function _getCIFilesScore(clonedPath: string, ciFileScore: number = 0): Pr
     console.error("clone path does not exist");
     return -1;
   }
-  const ciFiles = [".travis.yml", "circle.yml", "Jenkinsfile", "azure-pipelines.yml", ".github/workflows"];
+  const ciFilesPattern = /^(.travis.yml|circle.yml|Jenkinsfile|azure-pipelines.yml)$/;
   const filesInRepo = await fs.promises.readdir(clonedPath, {withFileTypes: true});
   for (const file of filesInRepo) {
     if(file.isDirectory()) {
@@ -145,10 +152,9 @@ async function _getCIFilesScore(clonedPath: string, ciFileScore: number = 0): Pr
     } else if(ciFileScore === 0.8) {
       // early return statement if one single CI/CD configuration file was found
       return ciFileScore;
-    } else if(ciFiles.includes(file.name)) { // if file is a CI/CD configuration file: score it 0.8
+    } else if(ciFilesPattern.test(file.name)) { // if file is a CI/CD configuration file: score it 0.8
       return 0.8;
-    }
-    else {
+    } else {
       return 0;
     }
   }
@@ -170,7 +176,7 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
 
   // Check for CI/CD configuration files
   let coverageScore = await _getCIFilesScore(clonedPath); // should get 0 or 0.8
-
+  console.log(`CI/CD configuration file score: ${coverageScore}`);
   // find test and src folders
   const [testFolderPath, srcFolderPath] = await Promise.all([
     __findTestOrSrc(clonedPath, "test"),
@@ -179,12 +185,12 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   if (srcFolderPath === null) {
     //something MUST be wrong if clonedPath specifies a package repo without a src folder but have CI/CD
     //files setup
-    console.log(`No src folder found for ${clonedPath}`);
+    console.log(`No src folder found in ${clonedPath}`);
     return 0;
   }
   if (testFolderPath === null) {
     //has a src folder but no test folder ⇒ coverageScore = 0
-    console.log(`No test folder found for ${clonedPath}`);
+    console.log(`No test folder found in ${clonedPath}`);
     return 0;
   }
   // compute the ratio of test files to source files
@@ -192,6 +198,7 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
     __countFilesInDirectory(testFolderPath),
     __countFilesInDirectory(srcFolderPath),
   ]);
+
   // handle if there are more tests than source files
   if (numTests > numSrc) {
     // when there are more tests than source files: first gauge how much more tests
