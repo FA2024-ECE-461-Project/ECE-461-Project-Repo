@@ -1,26 +1,35 @@
 import { cloneRepo, removeRepo } from "../src/metrics/clone_repo";
 import { calculateCorrectness } from "../src/metrics/correctness";
-import exp from "constants";
+import { getGithubInfo, RepoDetails } from "../src/apiProcess/gitApiProcess";
 
-const testRepoUrl = "https://github.com/cloudinary/cloudinary_npm";
+
+const testRepoUrl = "https://github.com/facebook/react";
 let clonedPath: string; //declare here so all tests have access
-// setup mock isomorphic-git (optional, maybe cloning a small repo and do our tests on it is fine)
-// jest.mock('isomorphic-git');
-// const mockedGit = require('isomorphic-git');
+let metric: RepoDetails;
+
+// setup mocks: should do this else test time out is an automatic fail
+jest.mock('isomorphic-git');
+jest.mock('isomorphic-git/http/node');
+const mockedGit = require('isomorphic-git');
+
 beforeAll(async () => {
   // setting up: mock isomorphic-git: do this later
   clonedPath = await cloneRepo(testRepoUrl);
+  metric = await getGithubInfo("facebook", "react");
   expect(clonedPath).not.toBeNull();
-  // mockedGit.clone.mockResolvedValueOnce(clonedPath);
+  mockedGit.clone.mockResolvedValueOnce(clonedPath);
 });
 
-describe("correctness score tests", () => {
-  test("correctness with valid cloned repo", async () => {});
+describe("correctness score tests on react", () => {
+  test("correctness with valid cloned repo", async () => {
+    const correctnessScore = await calculateCorrectness(metric, clonedPath);
+    expect(correctnessScore).toBeGreaterThan(0);
+  });
 });
+
 
 afterAll(async () => {
-  // teardown: remove cloned repo
-  // can remove this if mock isomorphic-git is implemented
+  // teardown: remove cloned repo: can remove this if mock isomorphic-git is implemented
   const removed = await removeRepo(testRepoUrl);
   expect(removed).toBeTruthy();
 });
