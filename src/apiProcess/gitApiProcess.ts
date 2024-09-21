@@ -1,31 +1,41 @@
 //Contains functions to interact with the GitHub API and process the responses
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 dotenv.config(); // Load environment variables from a .env file into process.env
-import axios, { all } from 'axios';
-import { log } from '../logger';
+import axios, { all } from "axios";
+import { log } from "../logger";
+import Bottleneck from "bottleneck";
 
-const GITHUB_API_URL = 'https://api.github.com/repos';
+// GitHub API URL
+const GITHUB_API_URL = "https://api.github.com/repos";
 
-if(!process.env.GITHUB_TOKEN) {
-  log.error('GITHUB_TOKEN environment variable not set');
+// Check if the GITHUB_TOKEN environment variable is set
+if (!process.env.GITHUB_TOKEN) {
+  console.error("GITHUB_TOKEN environment variable not set");
   process.exit(1);
 }
 
-//class for the repository details
+// Rate limiter to prevent hitting the GitHub API rate limit (5000 requests per hour for authenticated users)
+const limiter = new Bottleneck({
+  // rate limit = (3600 sec/hr) / (5000 req/hr) = 0.72 sec/req = 720 ms/req ~ 750 ms/req
+  maxConcurrent: 1,
+  minTime: 750, // 750ms between each request
+});
+
+// Repository details interface
 export interface RepoDetails {
   owner: string;
   repo: string;
-  created_at: string;
+  createdAt: string;
   stars: number;
-  openissues: number;
+  openIssues: number;
   forks: number;
   license: string;
-  descrption: string;
   commitsData: any[];
   issuesData: any[];
+  contributorsData: any[];
 }
 
-// License map
+// Map of license names to their full names
 const licenseMap: { [key: string]: string } = {
   "AFL-3.0": "Academic Free License v3.0",
   "Apache-2.0": "Apache License 2.0",
@@ -39,7 +49,7 @@ const licenseMap: { [key: string]: string } = {
   "CC0-1.0": "Creative Commons Zero v1.0 Universal",
   "CC-BY-4.0": "Creative Commons Attribution 4.0",
   "CC-BY-SA-4.0": "Creative Commons Attribution ShareAlike 4.0",
-  "WTFPL": "Do What The F*ck You Want To Public License",
+  WTFPL: "Do What The F*ck You Want To Public License",
   "ECL-2.0": "Educational Community License v2.0",
   "EPL-1.0": "Eclipse Public License 1.0",
   "EPL-2.0": "Eclipse Public License 2.0",
@@ -49,82 +59,160 @@ const licenseMap: { [key: string]: string } = {
   "GPL-3.0": "GNU General Public License v3.0",
   "LGPL-2.1": "GNU Lesser General Public License v2.1",
   "LGPL-3.0": "GNU Lesser General Public License v3.0",
-  "ISC": "ISC License",
+  ISC: "ISC License",
   "LPPL-1.3c": "LaTeX Project Public License v1.3c",
   "MS-PL": "Microsoft Public License",
-  "MIT": "MIT License",
+  MIT: "MIT License",
   "MPL-2.0": "Mozilla Public License 2.0",
   "OSL-3.0": "Open Software License 3.0",
-  "PostgreSQL": "PostgreSQL License",
+  PostgreSQL: "PostgreSQL License",
   "OFL-1.1": "SIL Open Font License 1.1",
-  "NCSA": "University of Illinois/NCSA Open Source License",
-  "Unlicense": "The Unlicense",
-  "Zlib": "zLib License"
+  NCSA: "University of Illinois/NCSA Open Source License",
+  Unlicense: "The Unlicense",
+  Zlib: "zLib License",
 };
 
-// extract the license from README using regex
-function extractLicenseFromReadme(readmeContent: string): string | null {
-  // Updated regex to match all listed licenses
-  const licenseRegex = new RegExp(
-    Object.keys(licenseMap)
-      .map(license => `\\b${license}\\b`)
-      .join("|"), "i");
+/*
+  Function Name: getGithubInfo
+  Description: This function fetches the repository details from GitHub using the Github API
+  @params: owner: string - the owner of the repository
+  @params: repo: string - the name of the repository
+  @returns: Promise<RepoDetails> - the repository details
+*/
+export async function getGithubInfo(
+  owner: string,
+  repo: string,
+): Promise<RepoDetails> {
+  log.info(`Entering getGithubInfo for ${owner}/${repo}`);
 
-  const match = readmeContent.match(licenseRegex);
-  if (match) {
-    return licenseMap[match[0]] || null; // Return the license name from the map if matched
+  log.info(
+    `In getGithubInfo, fetching repository details for ${owner}/${repo}`,
+  );
+  // Fetch the repository details from GitHub
+  const repoData = await limiter.schedule(() => _fetchRepoData(owner, repo));
+  log.info(`In getGithubInfo, Repository details fetched for ${owner}/${repo}`);
+
+  log.info(
+    `In getGithubInfo, fetching license information for ${owner}/${repo}`,
+  );
+  // Fetch the license information for the repository
+  const license = await limiter.schedule(() =>
+    _fetchLicense(repoData, owner, repo),
+  );
+  log.info(
+    `In getGithubInfo, license information fetched for ${owner}/${repo}`,
+  );
+
+  // Get the start date for the analysis (12 months ago or repository creation date, whichever is later)
+  const currentDate = new Date();
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setMonth(currentDate.getMonth() - 12);
+  const startDate =
+    repoData.createdAt > twelveMonthsAgo ? repoData.createdAt : twelveMonthsAgo;
+
+  log.info(`In getGithubInfo, fetching latest commits for ${owner}/${repo}`);
+  // Fetch latest commits (up to 500 from the start date)
+  let allCommits: any[] = [];
+  for (let page = 1; page <= 5; page++) {
+    const commits = await limiter.schedule(() =>
+      _fetchLatestCommits(owner, repo, startDate, 100, page),
+    );
+    allCommits = allCommits.concat(commits);
+    if (
+      commits.length < 100 ||
+      new Date(commits[commits.length - 1].commit.author.date) < startDate
+    ) {
+      break;
+    }
   }
+  log.info(`In getGithubInfo, latest commits fetched for ${owner}/${repo}`);
 
-  return null;
+  log.info(`In getGithubInfo, fetching latest issues for ${owner}/${repo}`);
+  // Fetch latest issues (up to 500 or from the start date)
+  let allIssues: any[] = [];
+  for (let page = 1; page <= 5; page++) {
+    const issues = await limiter.schedule(() =>
+      _fetchLatestIssues(owner, repo, 100, page, startDate),
+    );
+    allIssues = allIssues.concat(issues);
+    if (
+      issues.length < 100 ||
+      new Date(issues[issues.length - 1].createdAt) < startDate
+    ) {
+      break;
+    }
+  }
+  log.info(`In getGithubInfo, latest issues fetched for ${owner}/${repo}`);
+
+  log.info(`In getGithubInfo, fetching contributors for ${owner}/${repo}`);
+  // Fetch contributors data
+  const contributorsData = await limiter.schedule(() =>
+    _fetchContributors(owner, repo),
+  );
+  log.info(`In getGithubInfo, contributors fetched for ${owner}/${repo}`);
+
+  // Construct and populate the repository details object
+  const repoDetails: RepoDetails = {
+    owner: owner,
+    repo: repo,
+    createdAt: repoData.createdAt,
+    stars: repoData.stargazers_count,
+    openIssues: allIssues.length,
+    forks: repoData.forks_count,
+    license: license,
+    commitsData: allCommits,
+    issuesData: allIssues,
+    contributorsData: contributorsData.data,
+  };
+  log.debug(`Repository details for ${owner}/${repo}:`, repoDetails);
+
+  log.info(`Exiting getGithubInfo for ${owner}/${repo}`);
+  return repoDetails;
 }
 
-async function getLicenseFromPackageJson(owner: string, repo: string): Promise<string | null> {
+/*
+  Function Name: _getRepoData
+  Description: This function fetches the repository stats
+  @params: owner: string - the owner of the repository
+  @params: repo: string - the name of the repository
+  @returns: Promise<any> - the repository data
+*/
+async function _fetchRepoData(owner: string, repo: string): Promise<any> {
   try {
-    const packageJsonUrl = `${GITHUB_API_URL}/${owner}/${repo}/contents/package.json`;
-    const packageResponse = await axios.get(packageJsonUrl, {
+    const url = `${GITHUB_API_URL}/${owner}/${repo}`;
+    const response = await axios.get(url, {
       headers: {
         Authorization: `token ${process.env.GITHUB_TOKEN}`,
       },
     });
-
-    // Decode package.json content from base64
-    if (packageResponse.data.content) {
-      const packageContent = Buffer.from(packageResponse.data.content, 'base64').toString('utf-8');
-      const packageJson = JSON.parse(packageContent);
-
-      // Return the license from package.json if it exists
-      return packageJson.license || null;
-    }
-    return null;
+    return response.data;
   } catch (error) {
-    log.error(`Failed to fetch package.json for ${owner}/${repo}:`, error);
-    return null;
+    _handleError(error, `Failed to fetch repository data for ${owner}/${repo}`);
   }
 }
 
-// get the GitHub repository details
-export async function getGithubInfo(owner: string, repo: string): Promise<RepoDetails> {
-  try {
-    const url = `https://api.github.com/repos/${owner}/${repo}`;
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`
-      }
-    });
-    
-    //get data from github
-    const data = response.data;
-    //console.log(data);
-    const created_at = data.created_at;
-    const stars = data.stargazers_count;
-    const forks = data.forks_count;
-    const pullRequests = data.open_pull_requests_count || 0; // Default to 0 if not available
-    
-    let license = data.license?.name || 'No license';
-    // let license = licenseMap[data.license?.spdx_id] || 'No license';
-    const descrption = data.description || 'No description';
-    if (license === 'No license' || license === 'Other') {
-      const licenseFromPackageJson = await getLicenseFromPackageJson(owner, repo);
+/*
+  Function Name: _fetchLicense
+  Description: This function fetches the license information for a repository
+  @params: repoData: any - the repository data
+  @params: owner: string - the owner of the repository
+  @params: repo: string - the name of the repository
+  @returns: Promise<string> - the license name
+*/
+async function _fetchLicense(
+  repoData: any,
+  owner: string,
+  repo: string,
+): Promise<string> {
+  let license = repoData.license?.name || "No license";
+  //const description = data.description || "No description";
+
+  if (license === "No license" || license === "Other") {
+    try {
+      const licenseFromPackageJson = await _getLicenseFromPackageJson(
+        owner,
+        repo,
+      );
       if (licenseFromPackageJson) {
         license = licenseFromPackageJson;
       } else {
@@ -137,90 +225,226 @@ export async function getGithubInfo(owner: string, repo: string): Promise<RepoDe
         });
 
         if (readmeResponse.data.content) {
-          const readmeContent = Buffer.from(readmeResponse.data.content, 'base64').toString('utf-8');
-          const licenseFromReadme = extractLicenseFromReadme(readmeContent);
+          const readmeContent = Buffer.from(
+            readmeResponse.data.content,
+            "base64",
+          ).toString("utf-8");
+          const licenseFromReadme = _extractLicenseFromReadme(readmeContent);
           if (licenseFromReadme) {
             license = licenseFromReadme;
           }
         } else {
-          log.error(`The README file for ${owner}/${repo} is empty or not found`);
+          log.error(
+            `The README file for ${owner}/${repo} is empty or not found`,
+          );
         }
       }
+    } catch (error) {
+      _handleError(error, `Failed to fetch license for ${owner}/${repo}`);
     }
-
-    const currentDate = new Date();
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
-    const startDate = created_at > sixMonthsAgo ? created_at : sixMonthsAgo;
-
-    const perPage = 100;
-    let allCommits: any[] = [];
-    let allIssues: any[] = [];
-  
-    // Fetch latest 300 commits
-    for (let page = 1; page <= 5; page++) { 
-      // Fetch a page of 100 commits
-      const commitsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits`, {
-        params: {
-          per_page: perPage,
-          page: page,
-        },
-        headers: {
-          Authorization: `token ${process.env.GITHUB_TOKEN}`,
-        },
-      });
-  
-      const commits = commitsResponse.data;
-      allCommits = allCommits.concat(commits);
-  
-      // Check if there are more commits to fetch
-      if (commits.length < perPage || new Date(commits[commits.length - 1].commit.author.date) < startDate) {
-        break;
-      }
-    }
-
-    // Fetch latest 300 issues
-    for (let page = 1; page <= 5; page++) {
-      const issuesResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/issues`, {
-        params: {
-          state: 'all',
-          per_page: perPage,
-          page: page,
-        },
-        headers: {
-          Authorization: `token ${process.env.GITHUB_TOKEN}`,
-        },
-      });
-      const issues = issuesResponse.data;
-      allIssues = allIssues.concat(issues);
-  
-      // Check if there are more commits to fetch
-      //console.log(pageIssues);
-      if (issues.length < perPage || new Date(issues[issues.length - 1].created_at) < startDate) {
-        break;
-      }
-    }
-
-    //console.log(allIssues.length);
-
-    //return the repository details
-    const repoDetails: RepoDetails = {
-      owner: owner,
-      repo: repo,
-      created_at: created_at,
-      stars: stars,
-      openissues: allIssues.length,
-      forks: forks,
-      license: license,
-      descrption: descrption,
-      commitsData: allCommits,
-      issuesData: allIssues,
-    };
-    
-    return repoDetails;
-
-  } catch (error) {
-    log.error(`Failed to fetch data for ${owner}/${repo}:`, error);
-    throw error;
   }
+
+  return license;
+}
+
+/*
+  Function Name: _fetchLatestCommits
+  Description: This function fetches the latest commits for a repository
+  @params: owner: string - the owner of the repository
+  @params: repo: string - the name of the repository
+  @params: startDate: Date - the start date for the analysis
+  @params: perPage: number - the number of commits per page
+  @params: page: number - the page number for pagination
+  @returns: Promise<any[]> - the list of commits
+*/
+async function _fetchLatestCommits(
+  owner: string,
+  repo: string,
+  startDate: Date,
+  perPage: number = 100,
+  page: number,
+): Promise<any[]> {
+  let commits: any[] = [];
+
+  try {
+    // Fetch a page of 100 commits
+    const commitsResponse = await axios.get(
+      `${GITHUB_API_URL}/${owner}/${repo}/commits`,
+      {
+        params: {
+          per_page: perPage,
+          page: page,
+          since: startDate.toISOString(),
+        },
+        headers: {
+          Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      },
+    );
+    commits = commitsResponse.data;
+  } catch (error) {
+    _handleError(error, `Failed to fetch commits for ${owner}/${repo}`);
+  }
+
+  return commits;
+}
+
+/*
+  Function Name: _fetchLatestIssues
+  Description: This function fetches the latest issues for a repository
+  @params: owner: string - the owner of the repository
+  @params: repo: string - the name of the repository
+  @params: perPage: number - the number of issues per page
+  @params: page: number - the page number for pagination
+  @params: startDate: string - the start date for the analysis
+  @returns: Promise<any> - the list of issues
+*/
+async function _fetchLatestIssues(
+  owner: string,
+  repo: string,
+  perPage: number,
+  page: number,
+  startDate: string,
+): Promise<any> {
+  try {
+    const issuesResponse = await axios.get(
+      `${GITHUB_API_URL}/${owner}/${repo}/issues`,
+      {
+        params: {
+          state: "all",
+          per_page: perPage,
+          page: page,
+          since: startDate,
+        },
+        headers: {
+          Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      },
+    );
+    return issuesResponse.data;
+  } catch (error) {
+    _handleError(error, `Failed to fetch issues for ${owner}/${repo}`);
+  }
+}
+
+/*
+  Function Name: _fetchContributors
+  Description: This function fetches the contributors for a repository
+  @params: owner: string - the owner of the repository
+  @params: repo: string - the name of the repository
+  @returns: Promise<any> - the list of contributors
+*/
+async function _fetchContributors(owner: string, repo: string): Promise<any> {
+  try {
+    const contributorsUrl = `${GITHUB_API_URL}/${owner}/${repo}/stats/contributors`;
+    const contributorsData = await axios.get(contributorsUrl, {
+      headers: {
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      },
+    });
+    return contributorsData;
+  } catch (error) {
+    _handleError(error, `Failed to fetch contributors for ${owner}/${repo}`);
+  }
+}
+
+/*
+  Function Name: _extractLicenseFromReadme
+  Description: This function extracts the license information from the README file
+  @params: readmeContent: string - the content of the README file
+  @returns: string | null - the license name
+*/
+function _extractLicenseFromReadme(readmeContent: string): string | null {
+  // Updated regex to match all listed licenses
+  const licenseRegex = new RegExp(
+    Object.keys(licenseMap)
+      .map((license) => `\\b${license}\\b`)
+      .join("|"),
+    "i",
+  );
+
+  const match = readmeContent.match(licenseRegex);
+  if (match) {
+    return licenseMap[match[0]] || null; // Return the license name from the map if matched
+  }
+
+  return null;
+}
+
+/*
+  Function Name: _getLicenseFromPackageJson
+  Description: This function fetches the license information from the package.json file
+  @params: owner: string - the owner of the repository
+  @params: repo: string - the name of the repository
+  @returns: Promise<string | null> - the license name
+*/
+async function _getLicenseFromPackageJson(
+  owner: string,
+  repo: string,
+): Promise<string | null> {
+  try {
+    const packageJsonUrl = `${GITHUB_API_URL}/${owner}/${repo}/contents/package.json`;
+    const packageResponse = await axios.get(packageJsonUrl, {
+      headers: {
+        Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      },
+    });
+
+    // Decode package.json content from base64
+    if (packageResponse.data.content) {
+      const packageContent = Buffer.from(
+        packageResponse.data.content,
+        "base64",
+      ).toString("utf-8");
+      const packageJson = JSON.parse(packageContent);
+
+      // Return the license from package.json if it exists
+      return packageJson.license || null;
+    }
+    return null;
+  } catch (error) {
+    log.error(`Failed to fetch package.json for ${owner}/${repo}:`, error);
+    return null;
+  }
+}
+
+/*
+  Helper Function: handleError
+  Description: This function handles errors and logs appropriate messages
+  @params: error: any - the error object
+  @params: context: string - additional context information
+*/
+function _handleError(error: any, context: string): void {
+  log.info(`Error occured in context: ${context}`);
+  log.info(`Processing error...`);
+  if (axios.isAxiosError(error)) {
+    if (error.response) {
+      const status = error.response.status;
+      if (
+        (status === 403 || status === 429) &&
+        error.response.data.message.includes("rate limit exceeded")
+      ) {
+        console.error("Error: Rate limit exceeded. Please try again later.");
+      } else if (status >= 400 && status < 500) {
+        console.error(`Client error: ${status} - ${error.response.statusText}`);
+      } else if (status >= 500 && status < 600) {
+        console.error(`Server error: ${status} - ${error.response.statusText}`);
+      } else {
+        console.error(`HTTP error: ${status} - ${error.response.statusText}`);
+      }
+    } else if (error.request) {
+      // Request was made but no response was received
+      console.error("No response received:", error.request);
+    } else {
+      // Something happened in setting up the request
+      console.error("Error in request setup:", error.message);
+    }
+  } else {
+    // Non-Axios error
+    console.error("Unexpected error:", error);
+  }
+
+  console.error("Context:", context);
+  log.info(`Exiting errorhandling...`);
+  process.exit(1); // Exit the process with a return code 1
 }

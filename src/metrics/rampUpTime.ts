@@ -27,6 +27,7 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
     return score;
   } catch (error) {
     log.error('Error calculating ramp-up time:', error);
+
     return 0;
   }
 }
@@ -44,11 +45,15 @@ function checkReadme(dir: string): boolean {
 function checkInstallationInstructions(dir: string): boolean {
   log.info(`Checking for installation instructions in README files in directory: ${dir}`);
   const files = fs.readdirSync(dir);
-  const readmeFiles = files.filter(file => /^README(\.md|\.txt)?$/i.test(file));
-  const keywords = ['install', 'test', 'launch', 'run', 'example'];
+  const readmeFiles = files.filter((file) =>
+    /^README(\.md|\.txt)?$/i.test(file),
+  );
+  const keywords = ["install", "test", "launch", "run", "example"];
 
   for (const readmeFile of readmeFiles) {
-    const content = fs.readFileSync(path.join(dir, readmeFile), 'utf8').toLowerCase();
+    const content = fs
+      .readFileSync(path.join(dir, readmeFile), "utf8")
+      .toLowerCase();
     for (const keyword of keywords) {
       if (content.includes(keyword)) {
         log.debug(`Installation instructions found with keyword: ${keyword}`);
@@ -62,6 +67,7 @@ function checkInstallationInstructions(dir: string): boolean {
 
 // Function to calculate the code-to-comment ratio score
 function calculateCodeCommentRatio(dir: string): number {
+
   log.info('Calculating code-to-comment ratio score...');
   const allFiles = getAllFiles(dir);
   const codeExtensions = ['.js', '.ts', '.py', '.java', '.c', '.cpp', '.cs', '.rb', '.go', '.php', '.swift', '.kt', '.kts'];
@@ -73,8 +79,8 @@ function calculateCodeCommentRatio(dir: string): number {
   let totalComments = 0;
 
   for (const file of codeFiles) {
-    const content = fs.readFileSync(file, 'utf8');
-    const lines = content.split('\n');
+    const content = fs.readFileSync(file, "utf8");
+    const lines = content.split("\n");
     totalLines += lines.length;
     const ext = path.extname(file).toLowerCase();
     const commentsInFile = countCommentLines(lines, ext);
@@ -96,7 +102,11 @@ function calculateCodeCommentRatio(dir: string): number {
 }
 
 // Helper function to get all files in the repository directory
-function getAllFiles(dir: string, files?: string[], visitedPaths?: Set<string>): string[] {
+function getAllFiles(
+  dir: string,
+  files?: string[],
+  visitedPaths?: Set<string>,
+): string[] {
   files = files || [];
   visitedPaths = visitedPaths || new Set();
 
@@ -134,21 +144,21 @@ function getAllFiles(dir: string, files?: string[], visitedPaths?: Set<string>):
 
 // Function to count the number of comment lines in code files
 function countCommentLines(lines: string[], ext: string): number {
-  let singleLineComment = '//';
-  let multiLineCommentStart = '/*';
-  let multiLineCommentEnd = '*/';
+  let singleLineComment = "//";
+  let multiLineCommentStart = "/*";
+  let multiLineCommentEnd = "*/";
 
   // Adjust comment syntax based on file extension
   switch (ext) {
-    case '.py':
-      singleLineComment = '#';
+    case ".py":
+      singleLineComment = "#";
       multiLineCommentStart = `'''`;
       multiLineCommentEnd = `'''`;
       break;
-    case '.rb':
-      singleLineComment = '#';
-      multiLineCommentStart = '=begin';
-      multiLineCommentEnd = '=end';
+    case ".rb":
+      singleLineComment = "#";
+      multiLineCommentStart = "=begin";
+      multiLineCommentEnd = "=end";
       break;
     // Add more languages if needed
   }
