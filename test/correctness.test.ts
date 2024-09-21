@@ -1,7 +1,6 @@
 import { cloneRepo, removeRepo } from "../src/metrics/clone_repo";
 import { calculateCorrectness } from "../src/metrics/correctness";
 import { getGithubInfo, RepoDetails } from "../src/apiProcess/gitApiProcess";
-import exp from "constants";
 
 // Mock the necessary modules
 jest.mock('isomorphic-git');
