@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import { Logger } from "tslog";
-import { appendFileSync } from "fs";
+import { appendFileSync, existsSync } from "fs";
 
 export const log = new Logger({
   name: "Logger",
@@ -20,9 +20,14 @@ if (process.env.LOG_LEVEL === "1") {
 }
 
 log.attachTransport((logObj) => {
-  if (process.env.LOG_FILE === undefined) {
-    console.error("LOG_FILE environment variable not set");
-    process.exit(1);
-  }
+	if (process.env.LOG_FILE === undefined) {
+		console.error("LOG_FILE environment variable not set");
+		process.exit(1);
+	}
+	if (!existsSync(process.env.LOG_FILE)) {
+		console.error("LOG_FILE does not exist");
+		
+		process.exit(1);
+	}
   appendFileSync(process.env.LOG_FILE, JSON.stringify(logObj) + "\n");
 });

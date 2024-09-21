@@ -88,23 +88,4 @@ async function removeRepo(repoPath: string): Promise<Boolean> {
   return true;
 }
 
-// Example usage
-// const githubUrl = 'https://github.com/cloudinary/cloudinary_npm';
-// cloneRepo(githubUrl).then((repoPath) => {
-//   console.log(`Cloned to: ${repoPath}`);
-//   removeRepo(repoPath).then((success) => {
-//     console.log(`Removed: ${success}`);
-//   });
-// });
-
-// console.log(path.resolve(path.join(`${process.cwd()}`, '..')));
-// const projectDirectory = path.resolve(process.cwd());
-// const projectName = path.basename(projectDirectory);
-
-// console.log(projectDirectory);
-// console.log(projectName);
-// const toRemove = "/home/shay/a/ko109/461/ECE-461-Project-Repo/dummy"
-// // const toRemove = "/home/shay/a/ko109/461/ECE-461-Project-Repo";
-// removeRepo(toRemove).then((success) => { console.log(`${toRemove} is Removed: ${success}`); });
-
 export { cloneRepo, removeRepo };
