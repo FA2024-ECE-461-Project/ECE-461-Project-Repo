@@ -2,8 +2,12 @@ import { calculateBusFactor } from "../src/metrics/busFactor";
 import { RepoDetails } from "../src/apiProcess/gitApiProcess";
 import { log } from "../src/logger";
 
-// Mock the logger to avoid actual logging during tests
-jest.mock("../src/logger");
+jest.mock('../src/logger', () => ({
+  log: {
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 
 describe("calculateBusFactor", () => {
   it("should calculate bus factor for multiple contributors", () => {
