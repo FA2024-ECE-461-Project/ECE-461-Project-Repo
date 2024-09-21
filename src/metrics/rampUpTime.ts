@@ -1,47 +1,48 @@
 import { RepoDetails } from '../apiProcess/gitApiProcess';
 import * as fs from 'fs';
 import * as path from 'path';
+import { log } from "../logger";
 
 export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Promise<number> {
   try {
-    console.log(`Starting ramp-up time calculation for directory: ${dir}`);
+    log.info(`Starting ramp-up time calculation for directory: ${dir}`);
     let score = 0;
 
     // (0.1) README_OR_NOT: bool = 0 (no) or 1 (yes)
     const readmeScore = checkReadme(dir) ? 0.1 : 0;
-    console.log(`README file score: ${readmeScore}`);
+    log.debug(`README file score: ${readmeScore}`);
     score += readmeScore;
 
     // (0.4) Installation instruction (keywords: install, test, launch, run, example)
     const installScore = checkInstallationInstructions(dir) ? 0.4 : 0;
-    console.log(`Installation instruction score: ${installScore}`);
+    log.debug(`Installation instruction score: ${installScore}`);
     score += installScore;
 
     // (0.5) Code-to-comment ratio = #comments / (lines of code / 8)
     const codeCommentRatioScore = calculateCodeCommentRatio(dir);
-    console.log(`Code-to-comment ratio score: ${codeCommentRatioScore}`);
+    log.debug(`Code-to-comment ratio score: ${codeCommentRatioScore}`);
     score += codeCommentRatioScore;
 
-    console.log(`Final ramp-up time score: ${score}`);
+    log.info(`Final ramp-up time score: ${score}`);
     return score;
   } catch (error) {
-    console.error('Error calculating ramp-up time:', error);
+    log.error('Error calculating ramp-up time:', error);
     return 0;
   }
 }
 
 // Function to check for the existence of a README file
 function checkReadme(dir: string): boolean {
-  console.log(`Checking for README file in directory: ${dir}`);
+  log.info(`Checking for README file in directory: ${dir}`);
   const files = fs.readdirSync(dir);
   const readmeFiles = files.filter(file => /^README(\.md|\.txt)?$/i.test(file));
-  console.log(`README files found: ${readmeFiles.length}`);
+  log.debug(`README files found: ${readmeFiles.length}`);
   return readmeFiles.length > 0;
 }
 
 // Function to check for installation instructions in README files
 function checkInstallationInstructions(dir: string): boolean {
-  console.log(`Checking for installation instructions in README files in directory: ${dir}`);
+  log.info(`Checking for installation instructions in README files in directory: ${dir}`);
   const files = fs.readdirSync(dir);
   const readmeFiles = files.filter(file => /^README(\.md|\.txt)?$/i.test(file));
   const keywords = ['install', 'test', 'launch', 'run', 'example'];
@@ -50,23 +51,23 @@ function checkInstallationInstructions(dir: string): boolean {
     const content = fs.readFileSync(path.join(dir, readmeFile), 'utf8').toLowerCase();
     for (const keyword of keywords) {
       if (content.includes(keyword)) {
-        console.log(`Installation instructions found with keyword: ${keyword}`);
+        log.debug(`Installation instructions found with keyword: ${keyword}`);
         return true;
       }
     }
   }
-  console.log('No installation instructions found.');
+  log.debug('No installation instructions found.');
   return false;
 }
 
 // Function to calculate the code-to-comment ratio score
 function calculateCodeCommentRatio(dir: string): number {
-  console.log('Calculating code-to-comment ratio score...');
+  log.info('Calculating code-to-comment ratio score...');
   const allFiles = getAllFiles(dir);
   const codeExtensions = ['.js', '.ts', '.py', '.java', '.c', '.cpp', '.cs', '.rb', '.go', '.php', '.swift', '.kt', '.kts'];
   const codeFiles = allFiles.filter(file => codeExtensions.includes(path.extname(file).toLowerCase()));
 
-  console.log(`Found ${codeFiles.length} code files for analysis.`);
+  log.debug(`Found ${codeFiles.length} code files for analysis.`);
 
   let totalLines = 0;
   let totalComments = 0;
@@ -78,11 +79,11 @@ function calculateCodeCommentRatio(dir: string): number {
     const ext = path.extname(file).toLowerCase();
     const commentsInFile = countCommentLines(lines, ext);
     totalComments += commentsInFile;
-    console.log(`File: ${file}, Lines: ${lines.length}, Comments: ${commentsInFile}`);
+    log.debug(`File: ${file}, Lines: ${lines.length}, Comments: ${commentsInFile}`);
   }
 
   if (totalLines === 0) {
-    console.log('No lines of code found. Returning 0 for code-to-comment ratio.');
+    log.debug('No lines of code found. Returning 0 for code-to-comment ratio.');
     return 0; // Avoid division by zero
   }
 
@@ -90,7 +91,7 @@ function calculateCodeCommentRatio(dir: string): number {
   const normalizedRatio = Math.min(ratio, 1);
   const score = normalizedRatio * 0.5;
 
-  console.log(`Total lines: ${totalLines}, Total comments: ${totalComments}, Ratio: ${ratio}, Normalized score: ${score}`);
+  log.debug(`Total lines: ${totalLines}, Total comments: ${totalComments}, Ratio: ${ratio}, Normalized score: ${score}`);
   return score;
 }
 
@@ -99,7 +100,7 @@ function getAllFiles(dir: string, files?: string[], visitedPaths?: Set<string>):
   files = files || [];
   visitedPaths = visitedPaths || new Set();
 
-  console.log(`Reading directory: ${dir}`);
+  log.info(`Reading directory: ${dir}`);
   const entries = fs.readdirSync(dir);
 
   for (const entry of entries) {
@@ -115,7 +116,7 @@ function getAllFiles(dir: string, files?: string[], visitedPaths?: Set<string>):
     try {
       stats = fs.lstatSync(fullPath);
     } catch (err) {
-      console.error(`Error reading file stats for ${fullPath}: ${err}`);
+      log.error(`Error reading file stats for ${fullPath}: ${err}`);
       continue; // Skip this entry if there's an error
     }
 
@@ -172,6 +173,6 @@ function countCommentLines(lines: string[], ext: string): number {
       }
     }
   }
-  console.log(`Comment lines: ${commentLines}`);
+  log.debug(`Comment lines: ${commentLines}`);
   return commentLines;
 }
