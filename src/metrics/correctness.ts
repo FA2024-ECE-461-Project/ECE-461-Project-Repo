@@ -181,10 +181,6 @@ async function __countFilesInDirectory(
  *  @returns number - the score of the repository based on the presence of CI/CD configuration files
  * */
 async function _getCIFilesScore(clonedPath: string): Promise<number> {
-  if (!fs.existsSync(clonedPath)) {
-    console.error("clone path does not exist");
-    return 0;
-  }
 
   const ciFilesPattern = /^(.travis.yml|circle.yml|Jenkinsfile|azure-pipelines.yml|ci(-[a-z])*.yml)$/;
 
@@ -268,4 +264,4 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   return coverageScore;
 }
 
-export { calculateCorrectness };
+export { calculateCorrectness , __findSrc, __findTest, __countFilesInDirectory, _getCoverageScore, _getCIFilesScore, _computeOpenToClosedIssueRatio};
