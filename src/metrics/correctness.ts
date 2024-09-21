@@ -110,11 +110,11 @@ async function __findSrc( directoryPath: string, maxDepth: number = 2): Promise<
 }
 
 async function __findTest( directoryPath: string, maxDepth: number = 2): Promise<string | null> {
-  // BFS for the test folder
   const testPattern = /^(test|tests|spec|__tests__|__test__)$/;
   const fileNames = await fs.promises.readdir(directoryPath, {withFileTypes: true});
   let folders = fileNames.filter((file) => file.isDirectory());
   let currentDepth = maxDepth;
+  // BFS for the test folder
   for(const folder of folders) {
     if(testPattern.test(folder.name)) {
       const completePath = path.join(directoryPath, folder.name);
@@ -155,28 +155,31 @@ async function __countFilesInDirectory(
   return count;
 }
 
-async function _getCIFilesScore(clonedPath: string, ciFileScore: number = 0): Promise<number> {
-  // recursively search for CI/CD configuration files in entire repository
-  if(!fs.existsSync(clonedPath)) {
+async function _getCIFilesScore(clonedPath: string): Promise<number> {
+  if (!fs.existsSync(clonedPath)) {
     console.error("clone path does not exist");
-    return -1;
+    return 0;
   }
-  const ciFilesPattern = /^(.travis.yml|circle.yml|Jenkinsfile|azure-pipelines.yml)$/;
-  const filesInRepo = await fs.promises.readdir(clonedPath, {withFileTypes: true});
-  for (const file of filesInRepo) {
-    if(file.isDirectory()) {
-      const subDirPath = path.join(clonedPath, file.name);
-      ciFileScore = await _getCIFilesScore(subDirPath);
-    } else if(ciFileScore === 0.8) {
-      // early return statement if one single CI/CD configuration file was found
-      return ciFileScore;
-    } else if(ciFilesPattern.test(file.name)) { // if file is a CI/CD configuration file: score it 0.8
-      return 0.8;
-    } else {
-      return 0;
+
+  const ciFilesPattern = /^(.travis.yml|circle.yml|Jenkinsfile|azure-pipelines.yml|ci.yml)$/;
+
+  async function searchDirectory(directory: string): Promise<number> {
+    const filesInRepo = await fs.promises.readdir(directory, { withFileTypes: true });
+    for (const file of filesInRepo) {
+      const fullPath = path.join(directory, file.name);
+      if (file.isDirectory()) {
+        const score = await searchDirectory(fullPath);
+        if (score === 0.8) {
+          return 0.8; // Return immediately if a CI/CD file is found
+        }
+      } else if (ciFilesPattern.test(file.name)) {
+        return 0.8; // Return 0.8 if a CI/CD file is found
+      }
     }
+    return 0; // Return 0 if no CI/CD files are found in this directory
   }
-  return ciFileScore;
+
+  return await searchDirectory(clonedPath);
 }
 
 /* @param clonedPath: string - the path of the cloned repository
