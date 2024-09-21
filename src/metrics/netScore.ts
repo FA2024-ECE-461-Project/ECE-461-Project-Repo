@@ -7,6 +7,7 @@ import { calculateCorrectness } from "./correctness";
 import { cloneRepo, removeRepo } from "./clone_repo";
 import * as fs from "fs";
 import { assert } from "console";
+import { log } from "../logger";
 
 async function measureLatency<T, A extends any[]>(
   fn: (...args: A) => Promise<T> | T,
@@ -32,7 +33,7 @@ export async function GetNetScore(
     // console.log('\nFetching data from GitHub\n');
     const gitInfo = await getGithubInfo(owner, repo);
     if (!gitInfo) {
-      console.error("Failed to get repository info");
+      log.error("Failed to get repository info");
       return null;
     }
 
@@ -40,7 +41,7 @@ export async function GetNetScore(
     let api_time = (new Date().getTime() - start) / 1000;
 
     const repoUrl = `https://github.com/${owner}/${repo}.git`;
-    console.log("Cloning repository:", repoUrl);
+    log.info("Cloning repository:", repoUrl);
 
     const start_clone = new Date().getTime();
     // Clone the repository
