@@ -22,9 +22,9 @@ describe("calculateBusFactor", () => {
       commitsData: ["commitsData"],
       issuesData: ["1", "2", "3"],
       contributorsData: [
-        { name: "Alice", commits: 50 },
-        { name: "Bob", commits: 30 },
-        { name: "Charlie", commits: 20 },
+        { name: "Alice", total: 50 },
+        { name: "Bob", total: 30 },
+        { name: "Charlie", total: 20 },
       ]
     };
 
@@ -61,7 +61,27 @@ describe("calculateBusFactor", () => {
       license: "MIT",
       commitsData: ["commitsData"],
       issuesData: ["1", "2", "3"],
-      contributorsData: [{ name: "Alice", commits: 50 }]
+      contributorsData: [{ name: "Alice", total: 50 }]
+    };
+
+    const result = calculateBusFactor(metrics);
+    expect(result).toBe(0);
+  })
+  it("should handle one contributor but no commits", () => {
+    const metrics: RepoDetails = {
+      owner: "owner",
+      repo: "repo",
+      createdAt: "2021-01-01",
+      stars: 100,
+      openIssues: 100,
+      forks: 50,
+      license: "MIT",
+      commitsData: ["commitsData"],
+      issuesData: ["1", "2", "3"],
+      contributorsData: [
+        { author: { login: 'alice' }, total: 0 },
+        { author: { login: 'bob' }, total: 0}
+      ]
     };
 
     const result = calculateBusFactor(metrics);
