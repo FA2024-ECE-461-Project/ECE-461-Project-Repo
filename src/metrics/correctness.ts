@@ -35,42 +35,42 @@ async function calculateCorrectness(
 //helpers
 function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
   // Check if there are any commits available
-  if (metric.issuesData.length == 0) {
-    console.error('No issues data available for calculating responsiveness');
+  // Setting default Values
+  let ratioClosedToOpenIssues = 0;
+
+  // get date for 6 months ago
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  // get current date
+  const currentDate = new Date();
+  // constant value to convert time difference to weeks
+  if(metric.issuesData.length == 0) {
     return 0;
   }
 
-  let issuRatio;
   // Determine the start date for the 6-month period (or less if not enough data)
-  const dateEarliestIssue = new Date(
-    metric.issuesData[metric.issuesData.length - 1].created_at,
-  );
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-  const startDateIssues =
-    dateEarliestIssue > sixMonthsAgo ? dateEarliestIssue : sixMonthsAgo;
+    const dateEarliestIssue = new Date(
+      metric.issuesData[metric.issuesData.length - 1].created_at,
+    );
 
-  // current date
-  const currentDate = new Date();
-  // constant value to convert time difference to weeks: for time conversion later
-  const millisecondsInAWeek = 1000 * 60 * 60 * 24 * 7;
+    const startDateIssues = dateEarliestIssue > sixMonthsAgo ? dateEarliestIssue : sixMonthsAgo;
 
-  const issues = metric.issuesData;
-  //const issuesCurrentlyOpen = issues.filter(issue => issue.state === 'open');
-  const issuesOpenedPast6Months = issues.filter((issue) => {
-    new Date(issue.created_at) >= startDateIssues;
-  });
-  const closedIssuesPast6Months = issuesOpenedPast6Months.filter(
-    (issue) => issue.state === "closed",
-  );
+    // Calculate = number of issues closed in the past 6 months that were opened
+    //             in the past 6 months / number of issues created in the past 6 months
+    const issues = metric.issuesData;
+    const issuesOpenedPast6Months = issues.filter(
+      (issue) => new Date(issue.created_at) >= startDateIssues,
+    );
+    const closedIssuesPast6Months = issuesOpenedPast6Months.filter(
+      (issue) => issue.state === "closed",
+    );
 
-  if (issuesOpenedPast6Months.length === 0 || closedIssuesPast6Months.length === 0) {
-    console.log("No issues opened or closed in the past 6 months");
-    issuRatio = 0;
-  } else {
-    issuRatio = closedIssuesPast6Months.length / issuesOpenedPast6Months.length;
-  }
-  return issuRatio;
+    if (!( issuesOpenedPast6Months.length == 0 || closedIssuesPast6Months.length == 0)) {
+      // Calculate avg week to close an issue
+      ratioClosedToOpenIssues = closedIssuesPast6Months.length / issuesOpenedPast6Months.length; const millisecondsInAWeek = 1000 * 60 * 60 * 24 * 7;
+    }
+  return ratioClosedToOpenIssues;
 }
 
 
