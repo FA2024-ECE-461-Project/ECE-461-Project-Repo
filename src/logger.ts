@@ -19,8 +19,6 @@ if (process.env.LOG_LEVEL === "1") {
 	log.settings.minLevel = 2;   //debug messages
 }
 
-let logFile = process.env.LOG_FILE;
-
 log.attachTransport((logObj) => {
 	if (process.env.LOG_FILE === undefined) {
 		console.error("LOG_FILE environment variable not set");
