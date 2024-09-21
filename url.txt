@@ -1,3 +1,4 @@
+https://github.com/cloudinary/cloudinary_npm
 https://www.npmjs.com/package/wat4hjs
 https://github.com/mrdoob/three.js/
 https://www.npmjs.com/package/socket.io
