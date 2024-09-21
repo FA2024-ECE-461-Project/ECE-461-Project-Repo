@@ -1,12 +1,19 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import { Logger } from "tslog";
-import { appendFileSync, existsSync } from "fs";
+import { appendFileSync, existsSync, PathLike } from "fs";
 
 export const log = new Logger({
   name: "Logger",
   minLevel: 7,
 });
+
+const logFilePath = process.env.LOG_FILE as PathLike;
+
+if (!existsSync(logFilePath)) {
+  console.error("LOG_FILE does not exist");
+  process.exit(1);
+}
 
 //if LOG_LEVEL is 0, silence all logs
 //if LOG_LEVEL is 1, show information logs

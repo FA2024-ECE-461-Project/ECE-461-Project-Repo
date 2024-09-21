@@ -7,6 +7,7 @@ import * as path from "path";
 import * as util from "util";
 import * as dotenv from "dotenv";
 import { serialize } from "v8";
+import { log } from "../logger";
 dotenv.config(); // Load environment variables from a .env file into process.env
 
 /* @param metric: RepoDetails - the returned output from getGitRepoDetails
@@ -26,7 +27,7 @@ async function calculateCorrectness(
 
   // compute issue ratio
   const openToClosedIssueRatio = _computeOpenToClosedIssueRatio(metric);
-  console.log(
+  log.info(
     `${metric.repo} - testCoverageScore: ${testCoverageScore}, openToClosedIssueRatio: ${openToClosedIssueRatio}`,
   );
   return 0.5 * testCoverageScore + 0.5 * openToClosedIssueRatio;
@@ -99,7 +100,7 @@ async function __findSrc( directoryPath: string, maxDepth: number = 2): Promise<
       if (folder.isDirectory()) {
         if (srcPattern.test(folder.name)) {
           const completePath = path.join(currentPath, folder.name);
-          console.log(`found source in ${completePath}`);
+          log.info(`In _findSrc, found source in ${completePath}`);
           return completePath;
         } 
         if (currentDepth < maxDepth) {
@@ -125,7 +126,7 @@ async function __findTest( directoryPath: string, maxDepth: number = 2): Promise
       if (folder.isDirectory()) {
         if (testPattern.test(folder.name)) {
           const completePath = path.join(currentPath, folder.name);
-          console.log(`found test in ${completePath}`);
+          log.info(`In __findTest, found test in ${completePath}`);
           return completePath;
         } else if (currentDepth < maxDepth) {
           // enqueue current folder and assign depth for further search
@@ -201,7 +202,7 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
 
   // Check for CI/CD configuration files
   let ciCdScore = await _getCIFilesScore(clonedPath); // should get 0 or 0.8
-  console.log(`CI/CD configuration file score: ${ciCdScore}`);
+  log.info(`CI/CD configuration file score: ${ciCdScore}`);
   // find test and src folders
   const [testFolderPath, srcFolderPath] = await Promise.all([
     __findTest(clonedPath),
@@ -210,12 +211,12 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   if (srcFolderPath === null) {
     //something MUST be wrong if clonedPath specifies a package repo without a src folder but have CI/CD
     //files setup
-    console.log(`No src folder found in ${clonedPath}`);
+    log.error(`No src folder found in ${clonedPath}`);
     return 0;
   }
   if (testFolderPath === null) {
     //has a src folder but no test folder ⇒ coverageScore = 0
-    console.log(`No test folder found in ${clonedPath}`);
+    log.error(`No test folder found in ${clonedPath}`);
     return 0;
   }
   // compute the ratio of test files to source files
