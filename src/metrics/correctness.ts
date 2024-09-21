@@ -88,47 +88,51 @@ async function __findSrc( directoryPath: string, maxDepth: number = 2): Promise<
   }
   // BFS for the src folder
   const srcPattern = /^(src|source|sources|lib|app|package|packages|main)$/;
-  const fileNames = await fs.promises.readdir(directoryPath, {withFileTypes: true});
-  let folders = fileNames.filter((file) => file.isDirectory());
-  let currentDepth = maxDepth;
-  for(const folder of folders) {
-    if(srcPattern.test(folder.name)) {
-      const completePath = path.join(directoryPath, folder.name);
-      console.log(`found source in ${completePath}`);
-      return completePath
-    } else {
-        // queue in subfolders if maxDepth has not been reached
-        const namesInFolder= await fs.promises.readdir(path.join(directoryPath, folder.name), {withFileTypes: true})
-        const subFolders = namesInFolder.filter((file) => file.isDirectory());
-        if(currentDepth > 0) {
-          folders = folders.concat(subFolders);
-          currentDepth -= 1;
+  const queue: { path: string, depth: number }[] = [{ path: directoryPath, depth: 0 }];
+
+  while (queue.length > 0) {
+    //deconstructing assignment that inits currentPath and currentDepth to the first element in the queue
+    const { path: currentPath, depth: currentDepth } = queue.shift()!;
+    const namesInFolder = await fs.promises.readdir(currentPath, { withFileTypes: true });
+
+    for (const folder of namesInFolder) {
+      if (folder.isDirectory()) {
+        if (srcPattern.test(folder.name)) {
+          const completePath = path.join(currentPath, folder.name);
+          console.log(`found source in ${completePath}`);
+          return completePath;
+        } 
+        if (currentDepth < maxDepth) {
+          // enqueue current folder and assign depth for further search
+          queue.push({ path: path.join(currentPath, folder.name), depth: currentDepth + 1 });
         }
       }
+    }
   }
+
   return null;
 }
 
 async function __findTest( directoryPath: string, maxDepth: number = 2): Promise<string | null> {
   const testPattern = /^(test|tests|spec|__tests__|__test__)$/;
-  const fileNames = await fs.promises.readdir(directoryPath, {withFileTypes: true});
-  let folders = fileNames.filter((file) => file.isDirectory());
-  let currentDepth = maxDepth;
-  // BFS for the test folder
-  for(const folder of folders) {
-    if(testPattern.test(folder.name)) {
-      const completePath = path.join(directoryPath, folder.name);
-      console.log(`found test in ${completePath}`);
-      return completePath
-    } else {
-        // queue in subfolders if maxDepth has not been reached
-        const namesInFolder= await fs.promises.readdir(path.join(directoryPath, folder.name), {withFileTypes: true})
-        const subFolders = namesInFolder.filter((file) => file.isDirectory());
-        if(currentDepth > 0) {
-          folders = folders.concat(subFolders);
-          currentDepth -= 1;
+  const queue: { path: string, depth: number }[] = [{ path: directoryPath, depth: 0 }];
+
+  while (queue.length > 0) {
+    const { path: currentPath, depth: currentDepth } = queue.shift()!;
+    const namesInFolder = await fs.promises.readdir(currentPath, { withFileTypes: true });
+
+    for (const folder of namesInFolder) {
+      if (folder.isDirectory()) {
+        if (testPattern.test(folder.name)) {
+          const completePath = path.join(currentPath, folder.name);
+          console.log(`found test in ${completePath}`);
+          return completePath;
+        } else if (currentDepth < maxDepth) {
+          // enqueue current folder and assign depth for further search
+          queue.push({ path: path.join(currentPath, folder.name), depth: currentDepth + 1 });
         }
       }
+    }
   }
   return null;
 }
@@ -161,7 +165,7 @@ async function _getCIFilesScore(clonedPath: string): Promise<number> {
     return 0;
   }
 
-  const ciFilesPattern = /^(.travis.yml|circle.yml|Jenkinsfile|azure-pipelines.yml|ci.yml)$/;
+  const ciFilesPattern = /^(.travis.yml|circle.yml|Jenkinsfile|azure-pipelines.yml|ci(-[a-z])*.yml)$/;
 
   async function searchDirectory(directory: string): Promise<number> {
     const filesInRepo = await fs.promises.readdir(directory, { withFileTypes: true });
