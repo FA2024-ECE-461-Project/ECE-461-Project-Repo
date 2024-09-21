@@ -1,6 +1,7 @@
 import { cloneRepo, removeRepo } from "../src/metrics/clone_repo";
 import { calculateCorrectness } from "../src/metrics/correctness";
 import { getGithubInfo, RepoDetails } from "../src/apiProcess/gitApiProcess";
+import exp from "constants";
 
 // Mock the necessary modules
 jest.mock('isomorphic-git');
@@ -10,6 +11,7 @@ jest.mock('../src/apiProcess/gitApiProcess');
 
 const mockedGit = require('isomorphic-git');
 const mockedCloneRepo = cloneRepo as jest.Mock;
+const mockedRemoveRepo = removeRepo as jest.Mock;
 const mockedGetGithubInfo = getGithubInfo as jest.Mock;
 
 const testRepoUrl = "https://github.com/facebook/react";
@@ -47,10 +49,22 @@ beforeAll(async () => {
   expect(metric).not.toBeNull();
 });
 
-afterAll(async () => {
-  // Clean up if necessary
-  await removeRepo(clonedPath);
-});
+//not actually cloning or removing repo, so should not need teardown (afterAll block)
+// I am keeping it to practice using mocks
+afterAll(async() => {
+  // mock the removeRepo function: setup/arrange 
+  mockedRemoveRepo.mockResolvedValue(true);
+
+  // Call the mocked function: act/invoke whatever is being tested
+  // use await to ensure this async function resolves, then compare result
+  const removeResult = await mockedRemoveRepo(clonedPath);
+
+  // ensure mocking behaves as expected: asserts/checks
+  expect(mockedRemoveRepo).toHaveBeenCalled();
+  expect(mockedRemoveRepo).toHaveBeenCalledTimes(1);
+  expect(mockedRemoveRepo).toHaveBeenCalledWith(clonedPath);
+  expect(removeResult).toBe(true);
+})
 
 describe("calculateCorrectness: Mock evaluating react repo", () => {
   it("should calculate correctness for the mocked repository", async () => {
