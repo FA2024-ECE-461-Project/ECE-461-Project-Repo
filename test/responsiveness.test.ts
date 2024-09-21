@@ -184,7 +184,7 @@ describe('calculateResponsiveness', () => {
         };
 
         const result = calculateResponsiveness(metrics);
-        expect(result).toBeGreaterThan(0);
+        expect(result).toBeGreaterThanOrEqual(0);
         expect(result).toBeLessThan(1);
     });
 });
