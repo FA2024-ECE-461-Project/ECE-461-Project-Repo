@@ -8,6 +8,12 @@ jest.mock('isomorphic-git');
 jest.mock('isomorphic-git/http/node');
 jest.mock('../src/metrics/clone_repo');
 jest.mock('../src/apiProcess/gitApiProcess');
+jest.mock('../src/logger', () => ({
+  log: {
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 
 const mockedGit = require('isomorphic-git');
 const mockedCloneRepo = cloneRepo as jest.Mock;
