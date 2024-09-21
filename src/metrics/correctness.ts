@@ -36,7 +36,7 @@ async function calculateCorrectness(
 function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
   // Check if there are any commits available
   if (metric.issuesData.length == 0) {
-    //console.error('No commits data available for calculating responsiveness');
+    console.error('No issues data available for calculating responsiveness');
     return 0;
   }
 
@@ -65,6 +65,7 @@ function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
   );
 
   if (issuesOpenedPast6Months.length === 0 || closedIssuesPast6Months.length === 0) {
+    console.log("No issues opened or closed in the past 6 months");
     issuRatio = 0;
   } else {
     issuRatio = closedIssuesPast6Months.length / issuesOpenedPast6Months.length;
