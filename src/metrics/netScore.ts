@@ -6,7 +6,6 @@ import { calculateBusFactor } from "./busFactor";
 import { calculateCorrectness } from "./correctness";
 import { cloneRepo, removeRepo } from "./clone_repo";
 import * as fs from "fs";
-import { assert } from "console";
 import { log } from "../logger";
 
 async function measureLatency<T, A extends any[]>(
