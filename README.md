@@ -5,9 +5,9 @@ A Command Line Interface (CLI) tool designed to evaluate and score npm packages 
 This repository contains the code and resources for our ECE 461 team project.
 
 ## Team Members:
-- Jimmy
+- Jimmy Ho
 - Gaurav Vermani
-- Ryan 
+- Ryan Lin
 - Nick Ko
 
 ### Environment Setup
