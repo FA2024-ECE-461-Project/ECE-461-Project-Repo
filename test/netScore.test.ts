@@ -1,10 +1,9 @@
-process.env.GITHUB_TOKEN = 'test-token';
-import { GetNetScore, measureLatency } from '../src/metrics/netScore';
-import { getGithubInfo } from '../src/apiProcess/gitApiProcess';
+import { GetNetScore } from '../src/metrics/netScore';
+import { getGithubInfo, RepoDetails } from '../src/apiProcess/gitApiProcess';
 import { calculateRampUpTime } from '../src/metrics/rampUpTime';
 import { calculateResponsiveness } from '../src/metrics/responsiveness';
 import { calculateLicenseCompatibility } from '../src/metrics/licenseCompatibility';
-import { calculateBusFactor } from '../src/metrics/busFactor';
+import { calculateBusFactor } from '../src/metrics//busFactor';
 import { calculateCorrectness } from '../src/metrics/correctness';
 import { cloneRepo, removeRepo } from '../src/metrics/clone_repo';
 import * as fs from 'fs';
@@ -27,30 +26,61 @@ jest.mock('../src/apiProcess/gitApiProcess');
 jest.mock('../src/metrics/rampUpTime');
 jest.mock('../src/metrics/responsiveness');
 jest.mock('../src/metrics/licenseCompatibility');
-jest.mock('../src/metrics/busFactor');
+jest.mock('../src/metrics//busFactor');
 jest.mock('../src/metrics/correctness');
 jest.mock('../src/metrics/clone_repo');
 jest.mock('fs');
-jest.mock('../src/logger', () => ({
-  info: jest.fn(),
-  error: jest.fn(),
-  debug: jest.fn(),
+jest.mock('../src/logger');
+
+// netScore.test.ts
+
+
+// Mock the imported modules and functions
+jest.mock('../src/apiProcess/gitApiProcess', () => ({
+  getGithubInfo: jest.fn(),
 }));
 
-// Mock process.exit to prevent it from exiting during the test
-jest.spyOn(process, 'exit').mockImplementation((code?: string | number | null) => {
-  throw new Error(`process.exit: ${code}`);
-});
+jest.mock('../src/metrics/rampUpTime', () => ({
+  calculateRampUpTime: jest.fn(),
+}));
 
-describe('GetNetScore Function Tests', () => {
-  const owner = 'test-owner';
-  const repo = 'test-repo';
-  const url = 'https://github.com/test-owner/test-repo';
+jest.mock('../src/metrics/responsiveness', () => ({
+  calculateResponsiveness: jest.fn(),
+}));
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    process.env.GITHUB_TOKEN = 'mocked_github_token';
-  });
+jest.mock('../src/metrics/licenseCompatibility', () => ({
+  calculateLicenseCompatibility: jest.fn(),
+}));
+
+jest.mock('../src/metrics//busFactor', () => ({
+  calculateBusFactor: jest.fn(),
+}));
+
+jest.mock('../src/metrics/correctness', () => ({
+  calculateCorrectness: jest.fn(),
+}));
+
+jest.mock('../src/metrics/clone_repo', () => ({
+  cloneRepo: jest.fn(),
+  removeRepo: jest.fn(),
+}));
+
+jest.mock('fs', () => ({
+  existsSync: jest.fn(),
+  rmSync: jest.fn(),
+}));
+
+jest.mock('../src/logger', () => ({
+  log: {
+    info: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
+describe('GetNetScore', () => {
+  const owner = 'owner';
+  const repo = 'repo';
+  const url = 'https://github.com/owner/repo';
 
   it('should calculate NetScore correctly', async () => {
     const metrics: RepoDetails = {
