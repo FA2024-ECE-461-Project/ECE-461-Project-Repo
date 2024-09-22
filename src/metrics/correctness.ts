@@ -1,12 +1,9 @@
 //calculate correctness
 import axios from "axios";
 import * as fs from "fs";
-import exp from "node:constants";
 import { RepoDetails } from "../apiProcess/gitApiProcess";
 import * as path from "path";
-import * as util from "util";
 import * as dotenv from "dotenv";
-import { serialize } from "v8";
 import { log } from "../logger";
 dotenv.config(); // Load environment variables from a .env file into process.env
 
@@ -20,6 +17,10 @@ async function calculateCorrectness(
   metric: RepoDetails,
   clonedPath: string,
 ): Promise<number> {
+  if (!fs.existsSync(clonedPath)) {
+    throw new Error("Cloned path does not exist");
+  }
+
   // dynamic analysis: compute test coverage score
   const testCoverageScore = await _getCoverageScore(clonedPath);
 
@@ -161,10 +162,6 @@ async function __countFilesInDirectory(
 }
 
 async function _getCIFilesScore(clonedPath: string): Promise<number> {
-  if (!fs.existsSync(clonedPath)) {
-    console.error("clone path does not exist");
-    return 0;
-  }
 
   const ciFilesPattern = /^(.travis.yml|circle.yml|Jenkinsfile|azure-pipelines.yml|ci(-[a-z])*.yml)$/;
 
@@ -196,10 +193,6 @@ async function _getCIFilesScore(clonedPath: string): Promise<number> {
  * ensure the coverageScore is between 0 and 1.
  * */
 async function _getCoverageScore(clonedPath: string): Promise<number> {
-  if (!fs.existsSync(clonedPath)) {
-    throw new Error("Cloned path does not exist");
-  }
-
   // Check for CI/CD configuration files
   let ciCdScore = await _getCIFilesScore(clonedPath); // should get 0 or 0.8
   log.info(`CI/CD configuration file score: ${ciCdScore}`);
@@ -252,17 +245,4 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   return coverageScore;
 }
 
-/* @param path: string - the path of the repository
- *  @returns number - the lint score of the repository
- * clone the repo, run the linter, store results to a file,
- * parse the results and return the score
- * */
-function _getLintScore(path: string): number {
-  // clone repo with isomorphic-git
-
-  //run linter: and store output to a file
-  //parse linter output
-  //return score
-  return 0;
-}
 export { calculateCorrectness };
