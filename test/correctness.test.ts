@@ -19,7 +19,7 @@ jest.mock('../src/logger', () => ({
 const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedLog = log as jest.Mocked<typeof log>;
 
-describe('calculateCorrectness with almost complete data', () => {
+describe('calculateCorrectness with almost complete repository', () => {
   let metrics: RepoDetails;  //global for the this suite
   const clonedPath = "mocked/cloned/path";
   beforeAll(() => {
@@ -128,7 +128,7 @@ describe('calculateCorrectness with almost complete data', () => {
       expect(score).toBe(0);
     });
 
-    it("should score a 0 with only cdeeply hidden ci/cd file", async () => {
+    it("should score a 0 with only deeply hidden ci/cd file", async () => {
       // mock a clonedPath and the directory it points to in virtual memory file system
       const repoOutlookJSON = { 
       // key is file/repo name, key is content: they should all be strings
