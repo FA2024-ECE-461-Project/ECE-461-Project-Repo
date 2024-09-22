@@ -35,7 +35,7 @@ describe('GitHub API Process Functions', () => {
         'https://api.github.com/repos/mockOwner/mockRepo',
         { headers: { Authorization: `token ${process.env.GITHUB_TOKEN}` } }
       );
-    });
+    }); 
   });
 
   describe('_fetchLicense', () => {
