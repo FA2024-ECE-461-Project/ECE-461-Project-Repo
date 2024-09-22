@@ -238,6 +238,3 @@ export function countCommentLines(lines: string[], ext: string): number {
 
   return commentLines;
 }
-
-
-

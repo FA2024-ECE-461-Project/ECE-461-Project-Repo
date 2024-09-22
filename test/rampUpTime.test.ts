@@ -4,11 +4,13 @@ import * as os from 'os';
 import { calculateRampUpTime, checkReadme, checkInstallationInstructions, calculateCodeCommentRatio, getAllFiles, countCommentLines } from '../src/metrics/rampUpTime';
 
 // Local mock for logger
-const log = {
-  info: jest.fn(),
-  debug: jest.fn(),
-  error: jest.fn(),
-};
+jest.mock('../src/logger', () => ({
+  log: {
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
+  },
+}));
 
 // Utility function to create temporary directory and files
 function createTempDir() {
@@ -23,6 +25,7 @@ function writeFile(dir: string, filename: string, content: string) {
 
 describe('calculateRampUpTime', () => {
   let tempDir: string;
+  const { log } = require('../src/logger');  // Use the mocked logger
 
   beforeEach(() => {
     tempDir = createTempDir();
@@ -30,6 +33,7 @@ describe('calculateRampUpTime', () => {
 
   afterEach(() => {
     fs.rmSync(tempDir, { recursive: true, force: true });
+    jest.clearAllMocks(); // Clear mock logs after each test
   });
 
   test('should return correct score when README and install instructions exist', async () => {
@@ -37,6 +41,10 @@ describe('calculateRampUpTime', () => {
 
     const score = await calculateRampUpTime({} as any, tempDir);
     expect(score).toBeGreaterThan(0); // Expect some positive score
+
+    expect(log.info).toHaveBeenCalledWith(expect.stringContaining('Starting ramp-up time calculation'));
+    expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('README file score: 0.1'));
+    expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Installation instruction score: 0.4'));
   });
 
   test('should return 0 when no README exists', async () => {
@@ -44,6 +52,10 @@ describe('calculateRampUpTime', () => {
 
     const score = await calculateRampUpTime({} as any, tempDir);
     expect(score).toBe(0); // No README, score should be zero if nothing else contributes
+
+    expect(log.info).toHaveBeenCalledWith(expect.stringContaining('Starting ramp-up time calculation'));
+    expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('README file score: 0'));
+    expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Installation instruction score: 0'));
   });
 });
 
@@ -58,18 +70,16 @@ describe('checkReadme', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test('should return true if README file exists', () => {
+  test('should return true if README file exists (coverage for line 38)', () => {
     writeFile(tempDir, 'README.md', 'This is a README');
-
     const result = checkReadme(tempDir);
-    expect(result).toBe(true);
+    expect(result).toBe(true); // Line 38-39
   });
 
-  test('should return false if README file does not exist', () => {
-    writeFile(tempDir, 'index.js', '// No README here\nconsole.log("Hello, world!");');
-
+  test('should return false if README file does not exist (coverage for line 39)', () => {
+    writeFile(tempDir, 'index.js', 'console.log("Hello, world!");');
     const result = checkReadme(tempDir);
-    expect(result).toBe(false);
+    expect(result).toBe(false); // Line 39
   });
 });
 
@@ -123,6 +133,13 @@ describe('calculateCodeCommentRatio', () => {
     const result = calculateCodeCommentRatio(tempDir);
     expect(result).toBe(0); // No code files, score should be zero
   });
+
+  test('should return 0 if no comments are present in code files', () => {
+    writeFile(tempDir, 'index.js', 'console.log("Hello, world!");'); // No comments at all
+
+    const result = calculateCodeCommentRatio(tempDir);
+    expect(result).toBe(0); // No comments, score should be zero
+  });
 });
 
 describe('getAllFiles', () => {
@@ -153,5 +170,19 @@ describe('getAllFiles', () => {
     const normalizedFiles = files.map(file => path.normalize(file));
 
     expect(normalizedFiles).toEqual(expect.arrayContaining(expectedFiles));
+  });
+
+  test('should handle empty directories', () => {
+    const files = getAllFiles(tempDir); // No files
+
+    expect(files.length).toBe(0); // Empty directory, no files should be returned
+  });
+
+  test('should skip symbolic links', () => {
+    const symlinkPath = path.join(tempDir, 'symlink');
+    fs.symlinkSync('/some/real/path', symlinkPath);
+    const files = getAllFiles(tempDir);
+
+    expect(files).not.toContain(symlinkPath); // Ensure symlink is skipped
   });
 });
