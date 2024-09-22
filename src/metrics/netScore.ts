@@ -90,7 +90,9 @@ export async function GetNetScore(
       0.2 * rampUpTime.value;
 
     let net_time = (new Date().getTime() - start) / 1000;
-    log.info(`NetScore calculated successfully for ${url}. Time taken: ${net_time}s`);
+    log.info(
+      `NetScore calculated successfully for ${url}. Time taken: ${net_time}s`,
+    );
 
     return {
       URL: url,

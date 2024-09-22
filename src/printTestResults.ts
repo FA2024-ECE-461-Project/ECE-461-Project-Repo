@@ -1,18 +1,18 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from "fs";
 
 // Paths to the JSON report files
-const testResultsPath = './test-results.json';
-const coverageSummaryPath = './coverage/coverage-summary.json';
+const testResultsPath = "./test-results.json";
+const coverageSummaryPath = "./coverage/coverage-summary.json";
 
 try {
   // Read and parse the test results
-  const testResultsData = readFileSync(testResultsPath, 'utf8');
+  const testResultsData = readFileSync(testResultsPath, "utf8");
   const testResults = JSON.parse(testResultsData);
   const passedTests = testResults.numPassedTests;
   const totalTests = testResults.numTotalTests;
 
   // Read and parse the coverage summary
-  const coverageData = readFileSync(coverageSummaryPath, 'utf8');
+  const coverageData = readFileSync(coverageSummaryPath, "utf8");
   const coverageSummary = JSON.parse(coverageData);
 
   // Extract line coverage information
@@ -28,7 +28,9 @@ try {
   const sufficientCoverage = lineCoverage >= minCoverage;
 
   // Print the results
-  console.log(`${passedTests}/${totalTests} test cases passed. ${lineCoverage.toFixed(0)}% line coverage achieved.`);
+  console.log(
+    `${passedTests}/${totalTests} test cases passed. ${lineCoverage.toFixed(0)}% line coverage achieved.`,
+  );
 
   // Exit with appropriate code
   if (allTestsPassed && sufficientTests && sufficientCoverage) {
@@ -37,6 +39,9 @@ try {
     process.exit(1);
   }
 } catch (err) {
-  console.error('Error reading or parsing test results or coverage summary:', err);
+  console.error(
+    "Error reading or parsing test results or coverage summary:",
+    err,
+  );
   process.exit(1);
 }

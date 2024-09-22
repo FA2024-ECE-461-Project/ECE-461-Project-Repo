@@ -1,7 +1,7 @@
 // logger.test.ts
 
 // Mock 'fs' module before importing it
-jest.mock('fs', () => ({
+jest.mock("fs", () => ({
   existsSync: jest.fn(),
   truncateSync: jest.fn(),
   appendFileSync: jest.fn(),
@@ -10,13 +10,13 @@ jest.mock('fs', () => ({
 
 // logger.test.ts
 
-import * as fs from 'fs';
-import { Logger } from 'tslog';
+import * as fs from "fs";
+import { Logger } from "tslog";
 
-jest.mock('fs');
-jest.mock('tslog');
+jest.mock("fs");
+jest.mock("tslog");
 
-describe('Logger Module', () => {
+describe("Logger Module", () => {
   let originalEnv: NodeJS.ProcessEnv;
   let mockExit: jest.SpyInstance;
   let mockConsoleError: jest.SpyInstance;
@@ -26,10 +26,12 @@ describe('Logger Module', () => {
     originalEnv = { ...process.env };
     jest.resetModules();
     jest.clearAllMocks();
-    mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit called');
+    mockExit = jest.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("process.exit called");
     });
-    mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockConsoleError = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -39,31 +41,34 @@ describe('Logger Module', () => {
     mockConsoleError.mockRestore();
   });
 
-  it('should exit if LOG_FILE is not set', () => {
+  it("should exit if LOG_FILE is not set", () => {
     // Arrange
     delete process.env.LOG_FILE;
 
     // Act & Assert
     expect(() => {
-      require('../src/logger');
-    }).toThrow('process.exit called');
+      require("../src/logger");
+    }).toThrow("process.exit called");
 
-    expect(mockConsoleError).toHaveBeenCalledWith('LOG_FILE does not exist or is not set');
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      "LOG_FILE does not exist or is not set",
+    );
     expect(mockExit).toHaveBeenCalledWith(1);
   });
 
-  it('should exit if LOG_FILE does not exist', () => {
+  it("should exit if LOG_FILE does not exist", () => {
     // Arrange
-    process.env.LOG_FILE = '/path/to/nonexistent/logfile.log';
+    process.env.LOG_FILE = "/path/to/nonexistent/logfile.log";
     (fs.existsSync as jest.Mock).mockReturnValue(false);
 
     // Act & Assert
     expect(() => {
-      require('../src/logger');
-    }).toThrow('process.exit called');
+      require("../src/logger");
+    }).toThrow("process.exit called");
 
-    expect(mockConsoleError).toHaveBeenCalledWith('LOG_FILE does not exist or is not set');
+    expect(mockConsoleError).toHaveBeenCalledWith(
+      "LOG_FILE does not exist or is not set",
+    );
     expect(mockExit).toHaveBeenCalledWith(1);
   });
-
 });

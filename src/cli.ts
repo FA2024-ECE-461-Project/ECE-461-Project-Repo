@@ -15,11 +15,11 @@ import { log } from "./logger";
 export async function cli() {
   // Read from the command line arguments
   const args = process.argv.slice(2);
-  
+
   // Check if exactly one argument (file path) is provided
   if (args.length !== 1) {
     log.error("Usage: ./run FILE_PATH");
-    process.exit(1);  // Exit with error code if arguments are incorrect
+    process.exit(1); // Exit with error code if arguments are incorrect
   }
 
   // Extract the file path from command-line arguments
@@ -28,14 +28,14 @@ export async function cli() {
     // Read URLs from the provided file
     log.info(`Reading URLs from file: ${filePath}`);
     const urls = await readUrlsFromFile(filePath); // Assuming the file contains URLs line by line
-    
+
     // Store the results of the processing
     const results = [];
 
     // Process each URL from the file
     for (let url of urls) {
       log.info(`Processing URL: ${url}`);
-      
+
       // Determine the type of the URL (GitHub, npm, or invalid)
       const urlType = checkUrlType(url);
       const rawUrl = url.trim();

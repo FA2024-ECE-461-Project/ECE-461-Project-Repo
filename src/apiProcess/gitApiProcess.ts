@@ -113,9 +113,10 @@ async function getGithubInfo(
   // Fetch latest commits (up to 500 from the start date)
   let allCommits: any[] = [];
   for (let page = 1; page <= 5; page++) {
-    const commits = await limiter.schedule(() =>
-      _fetchLatestCommits(owner, repo, startDate, 100, page),
-    ) || [];
+    const commits =
+      (await limiter.schedule(() =>
+        _fetchLatestCommits(owner, repo, startDate, 100, page),
+      )) || [];
     allCommits = allCommits.concat(commits);
     if (
       commits.length < 100 ||
@@ -130,9 +131,10 @@ async function getGithubInfo(
   // Fetch latest issues (up to 500 or from the start date)
   let allIssues: any[] = [];
   for (let page = 1; page <= 5; page++) {
-    const issues = await limiter.schedule(() =>
-      _fetchLatestIssues(owner, repo, 100, page, startDate),
-    ) || [];
+    const issues =
+      (await limiter.schedule(() =>
+        _fetchLatestIssues(owner, repo, 100, page, startDate),
+      )) || [];
     allIssues = allIssues.concat(issues);
     if (
       issues.length < 100 ||
@@ -419,12 +421,17 @@ function _handleError(error: any, context: string): void {
   if (axios.isAxiosError(error)) {
     if (error.response) {
       const status = error.response.status;
-      if ( (status == 403 || status == 429) && error.response.headers['x-ratelimit-remaining'] === '0') {
+      if (
+        (status == 403 || status == 429) &&
+        error.response.headers["x-ratelimit-remaining"] === "0"
+      ) {
         console.error(`Error: Rate limit exceeded.`);
       } else if (status == 401) {
         console.error("Error: Unauthorized. Invalid or missing GitHub Token.");
       } else if (status == 403) {
-        console.error("Error: Forbidden. You do not have permission to access this resource.");
+        console.error(
+          "Error: Forbidden. You do not have permission to access this resource.",
+        );
       } else if (status == 404) {
         console.error("Error: Not Found. Invalid URL.");
       } else if (status >= 400 && status < 500) {
@@ -451,4 +458,12 @@ function _handleError(error: any, context: string): void {
   process.exit(1); // Exit the process with a return code 1
 }
 
-export { getGithubInfo, _fetchRepoData, _fetchLicense, _fetchLatestCommits, _fetchLatestIssues, _fetchContributors, _handleError };
+export {
+  getGithubInfo,
+  _fetchRepoData,
+  _fetchLicense,
+  _fetchLatestCommits,
+  _fetchLatestIssues,
+  _fetchContributors,
+  _handleError,
+};

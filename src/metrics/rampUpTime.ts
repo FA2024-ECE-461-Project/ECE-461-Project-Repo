@@ -1,6 +1,6 @@
-import { RepoDetails } from '../apiProcess/gitApiProcess';
-import * as fs from 'fs';
-import * as path from 'path';
+import { RepoDetails } from "../apiProcess/gitApiProcess";
+import * as fs from "fs";
+import * as path from "path";
 import { log } from "../logger";
 
 /*
@@ -12,7 +12,10 @@ import { log } from "../logger";
     - dir: string - The directory where the repository is located
   @returns: number - The calculated ramp-up time score.
 */
-export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Promise<number> {
+export async function calculateRampUpTime(
+  metrics: RepoDetails,
+  dir: string,
+): Promise<number> {
   try {
     log.info(`Starting ramp-up time calculation for directory: ${dir}`);
     let score = 0;
@@ -35,7 +38,7 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
     log.info(`Final ramp-up time score: ${score}`);
     return score;
   } catch (error) {
-    log.error('Error calculating ramp-up time:', error);
+    log.error("Error calculating ramp-up time:", error);
     return 0;
   }
 }
@@ -51,12 +54,12 @@ export function checkReadme(dir: string): boolean {
   log.info(`Checking for README file in directory: ${dir}`);
   const files = fs.readdirSync(dir);
   log.debug(`Files found: ${files}`); // Log all files in the directory
-  const readmeFiles = files.filter(file => /^README(\.md|\.txt)?$/i.test(file));
+  const readmeFiles = files.filter((file) =>
+    /^README(\.md|\.txt)?$/i.test(file),
+  );
   log.debug(`README files found: ${readmeFiles.length}`); // Log the number of README files found
   return readmeFiles.length > 0;
 }
-
-
 
 /*
   Function Name: checkInstallationInstructions
@@ -66,15 +69,21 @@ export function checkReadme(dir: string): boolean {
   @returns: boolean - True if installation instructions are found, false otherwise.
 */
 export function checkInstallationInstructions(dir: string): boolean {
-  log.info(`Checking for installation instructions in README files in directory: ${dir}`);
+  log.info(
+    `Checking for installation instructions in README files in directory: ${dir}`,
+  );
   const files = fs.readdirSync(dir);
-  const readmeFiles = files.filter((file) => /^README(\.md|\.txt)?$/i.test(file));
+  const readmeFiles = files.filter((file) =>
+    /^README(\.md|\.txt)?$/i.test(file),
+  );
   log.debug(`README files found for installation check: ${readmeFiles.length}`);
-  
+
   const keywords = ["install", "test", "launch", "run", "example"];
 
   for (const readmeFile of readmeFiles) {
-    const content = fs.readFileSync(path.join(dir, readmeFile), "utf8").toLowerCase();
+    const content = fs
+      .readFileSync(path.join(dir, readmeFile), "utf8")
+      .toLowerCase();
     log.debug(`Checking README content for keywords: ${content}`);
     for (const keyword of keywords) {
       if (content.includes(keyword)) {
@@ -83,10 +92,9 @@ export function checkInstallationInstructions(dir: string): boolean {
       }
     }
   }
-  log.debug('No installation instructions found.');
+  log.debug("No installation instructions found.");
   return false;
 }
-
 
 /*
   Function Name: calculateCodeCommentRatio
@@ -96,12 +104,30 @@ export function checkInstallationInstructions(dir: string): boolean {
   @returns: number - The calculated code-to-comment ratio score.
 */
 export function calculateCodeCommentRatio(dir: string): number {
-  log.info('Calculating code-to-comment ratio score...');
+  log.info("Calculating code-to-comment ratio score...");
   const allFiles = getAllFiles(dir);
-  log.debug(`Files found in directory for comment ratio calculation: ${allFiles}`);
-  
-  const codeExtensions = ['.js', '.ts', '.py', '.java', '.c', '.cpp', '.cs', '.rb', '.go', '.php', '.swift', '.kt', '.kts'];
-  const codeFiles = allFiles.filter(file => codeExtensions.includes(path.extname(file).toLowerCase()));
+  log.debug(
+    `Files found in directory for comment ratio calculation: ${allFiles}`,
+  );
+
+  const codeExtensions = [
+    ".js",
+    ".ts",
+    ".py",
+    ".java",
+    ".c",
+    ".cpp",
+    ".cs",
+    ".rb",
+    ".go",
+    ".php",
+    ".swift",
+    ".kt",
+    ".kts",
+  ];
+  const codeFiles = allFiles.filter((file) =>
+    codeExtensions.includes(path.extname(file).toLowerCase()),
+  );
 
   log.debug(`Found ${codeFiles.length} code files for analysis.`);
   let totalLines = 0;
@@ -114,11 +140,13 @@ export function calculateCodeCommentRatio(dir: string): number {
     const ext = path.extname(file).toLowerCase();
     const commentsInFile = countCommentLines(lines, ext);
     totalComments += commentsInFile;
-    log.debug(`File: ${file}, Lines: ${lines.length}, Comments: ${commentsInFile}`);
+    log.debug(
+      `File: ${file}, Lines: ${lines.length}, Comments: ${commentsInFile}`,
+    );
   }
 
   if (totalLines === 0) {
-    log.debug('No lines of code found. Returning 0 for code-to-comment ratio.');
+    log.debug("No lines of code found. Returning 0 for code-to-comment ratio.");
     return 0; // Avoid division by zero
   }
 
@@ -126,10 +154,11 @@ export function calculateCodeCommentRatio(dir: string): number {
   const normalizedRatio = Math.min(ratio, 1);
   const score = normalizedRatio * 0.5;
 
-  log.debug(`Total lines: ${totalLines}, Total comments: ${totalComments}, Ratio: ${ratio}, Normalized score: ${score}`);
+  log.debug(
+    `Total lines: ${totalLines}, Total comments: ${totalComments}, Ratio: ${ratio}, Normalized score: ${score}`,
+  );
   return score;
 }
-
 
 /*
   Function Name: getAllFiles
@@ -152,7 +181,7 @@ export function getAllFiles(
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const entry of entries) {
-    const fullPath = path.posix.join(dir, entry.name);  // Use posix to normalize path
+    const fullPath = path.posix.join(dir, entry.name); // Use posix to normalize path
 
     if (visitedPaths.has(fullPath)) {
       continue;
@@ -177,8 +206,6 @@ export function getAllFiles(
   }
   return files;
 }
-
-
 
 /*
   Function Name: countCommentLines
