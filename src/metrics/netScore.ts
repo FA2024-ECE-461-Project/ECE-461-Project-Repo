@@ -117,7 +117,7 @@ export async function GetNetScore(
       ),
     };
   } catch (error) {
-    log.error(`GetNetScore: Failed to calculate metrics for ${url}`, error);
+    console.error(`GetNetScore: Failed to calculate metrics for ${url}`, error);
     return null;
     //do we exit here?
   } finally {
