@@ -36,7 +36,7 @@ describe('calculateRampUpTime', () => {
     jest.clearAllMocks(); // Clear mock logs after each test
   });
 
-  test('should return correct score when README and install instructions exist', async () => {
+  it('should return correct score when README and install instructions exist', async () => {
     writeFile(tempDir, 'README.md', 'This is a test README with install instructions.\nRun this code.');
 
     const score = await calculateRampUpTime({} as any, tempDir);
@@ -47,7 +47,7 @@ describe('calculateRampUpTime', () => {
     expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('Installation instruction score: 0.4'));
   });
 
-  test('should return 0 when no README exists', async () => {
+  it('should return 0 when no README exists', async () => {
     writeFile(tempDir, 'index.js', 'console.log("Hello, world!");'); // No comments at all
 
     const score = await calculateRampUpTime({} as any, tempDir);
@@ -70,16 +70,16 @@ describe('checkReadme', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test('should return true if README file exists (coverage for line 38)', () => {
+  it('should return true if README file exists', async() => {
     writeFile(tempDir, 'README.md', 'This is a README');
     const result = checkReadme(tempDir);
-    expect(result).toBe(true); // Line 38-39
+    expect(result).toBe(true); 
   });
 
-  test('should return false if README file does not exist (coverage for line 39)', () => {
+  it('should return false if README file does not exist', async () => {
     writeFile(tempDir, 'index.js', 'console.log("Hello, world!");');
     const result = checkReadme(tempDir);
-    expect(result).toBe(false); // Line 39
+    expect(result).toBe(false);
   });
 });
 
@@ -94,14 +94,14 @@ describe('checkInstallationInstructions', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test('should return true if installation instructions are found', () => {
+  it('should return true if installation instructions are found', async () => {
     writeFile(tempDir, 'README.md', 'To install this package, run the following command.');
 
     const result = checkInstallationInstructions(tempDir);
     expect(result).toBe(true);
   });
 
-  test('should return false if no installation instructions are found', () => {
+  it('should return false if no installation instructions are found', async () => {
     writeFile(tempDir, 'README.md', 'This is a README without any relevant keywords.');
 
     const result = checkInstallationInstructions(tempDir);
@@ -120,21 +120,21 @@ describe('calculateCodeCommentRatio', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test('should calculate the correct code-to-comment ratio', () => {
+  it ('should calculate the correct code-to-comment ratio', async () => {
     writeFile(tempDir, 'index.js', '// This is a comment\nconsole.log("Hello, world!");');
 
     const result = calculateCodeCommentRatio(tempDir);
     expect(result).toBeGreaterThan(0); // Expect positive score due to comments in the file
   });
 
-  test('should return 0 if no code files are found', () => {
+  it('should return 0 if no code files are found', async () => {
     writeFile(tempDir, 'README.md', 'This is a README without any code files.');
 
     const result = calculateCodeCommentRatio(tempDir);
     expect(result).toBe(0); // No code files, score should be zero
   });
 
-  test('should return 0 if no comments are present in code files', () => {
+  it ('should return 0 if no comments are present in code files', async () => {
     writeFile(tempDir, 'index.js', 'console.log("Hello, world!");'); // No comments at all
 
     const result = calculateCodeCommentRatio(tempDir);
@@ -154,7 +154,7 @@ describe('getAllFiles', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  test('should retrieve all files from directory recursively', () => {
+  it ('should retrieve all files from directory recursively', async () => {
     writeFile(tempDir, 'README.md', 'This is a README file.');
     writeFile(path.join(tempDir, 'src'), 'index.js', 'console.log("Hello, world!");');
 
@@ -172,13 +172,13 @@ describe('getAllFiles', () => {
     expect(normalizedFiles).toEqual(expect.arrayContaining(expectedFiles));
   });
 
-  test('should handle empty directories', () => {
+  it ('should handle empty directories', async () => {
     const files = getAllFiles(tempDir); // No files
 
-    expect(files.length).toBe(0); // Empty directory, no files should be returned
+    expect(files.length).toBe(0);
   });
 
-  test('should skip symbolic links', () => {
+  it ('should skip symbolic links', async () => {
     const symlinkPath = path.join(tempDir, 'symlink');
     fs.symlinkSync('/some/real/path', symlinkPath);
     const files = getAllFiles(tempDir);
