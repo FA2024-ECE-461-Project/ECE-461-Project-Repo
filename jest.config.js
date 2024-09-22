@@ -12,5 +12,5 @@ export default {
   transform: {
     "^.+.tsx?$": ["ts-jest",{}],
   }, 
-  testMatch: ['<rootDir>/test/correctness.test.(js|ts)']  //only run test scripts in the test folder
+  testMatch: ['<rootDir>/test/*.test.(ts|js)']  //only run test scripts in the test folder
 };
