@@ -3,36 +3,50 @@ dotenv.config();
 import { Logger } from "tslog";
 import { appendFileSync, existsSync, truncateSync, PathLike } from "fs";
 
+const LOG_LEVELS = {
+  SILENT: 0,
+  INFO: 1,
+  DEBUG: 2,
+};
+
+const logFilePath = process.env.LOG_FILE as PathLike;
+
+function checkLogFilePath() {
+  if (!logFilePath || !existsSync(logFilePath)) {
+    console.error("LOG_FILE does not exist or is not set");
+    process.exit(1);
+  }
+}
+
+function setLogLevel() {
+  switch (process.env.LOG_LEVEL) {
+    case String(LOG_LEVELS.INFO):
+      log.settings.minLevel = 3; // information messages
+      break;
+    case String(LOG_LEVELS.DEBUG):
+      log.settings.minLevel = 2; // debug messages
+      break;
+    default:
+      log.settings.minLevel = 7; // default to the highest level (silent)
+  }
+}
+
+checkLogFilePath();
+
 export const log = new Logger({
   name: "Logger",
   minLevel: 7,
 });
 
-const logFilePath = process.env.LOG_FILE as PathLike;
-
-if (!existsSync(logFilePath)) {
-  console.error("LOG_FILE does not exist");
-  process.exit(1);
-}
-
 // Clear the log file at the beginning of the script
 truncateSync(logFilePath, 0);
 
-//if LOG_LEVEL is 0, silence all logs
-//if LOG_LEVEL is 1, show information logs
-//if LOG_LEVEL is 2, show debug logs
-
-// Set log level based on environment variable
-if (process.env.LOG_LEVEL === "1") {
-  log.settings.minLevel = 3; // information messages
-} else if (process.env.LOG_LEVEL === "2") {
-  log.settings.minLevel = 2; //debug messages
-}
+setLogLevel();
 
 log.attachTransport((logObj) => {
-  if (process.env.LOG_FILE === undefined) {
+  if (!logFilePath) {
     console.error("LOG_FILE environment variable not set");
     process.exit(1);
   }
-  appendFileSync(process.env.LOG_FILE, JSON.stringify(logObj) + "\n");
+  appendFileSync(logFilePath, JSON.stringify(logObj) + "\n");
 });
