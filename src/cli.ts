@@ -2,7 +2,6 @@ import { checkUrlType, processUrl } from "./utils/urlUtils";
 import { readUrlsFromFile } from "./utils/fileUtils";
 import { GetNetScore } from "./metrics/netScore";
 import { log } from "./logger";
-import { exit } from "process";
 
 /*
   Function Name: cli
