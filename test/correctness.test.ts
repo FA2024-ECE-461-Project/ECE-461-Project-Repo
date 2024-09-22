@@ -5,6 +5,7 @@ import { calculateCorrectness } from '../src/metrics/correctness';
 import { RepoDetails } from '../src/apiProcess/gitApiProcess';
 import { log } from '../src/logger';
 import { clone } from 'isomorphic-git';
+import exp from 'constants';
 
 jest.mock('fs');
 jest.mock('../src/logger', () => ({
@@ -125,5 +126,24 @@ describe('calculateCorrectness with almost complete data', () => {
 
       const score = await calculateCorrectness(metrics, clonedPath);
       expect(score).toBe(0);
+    });
+
+    it("should score a 0 with only cdeeply hidden ci/cd file", async () => {
+      // mock a clonedPath and the directory it points to in virtual memory file system
+      const repoOutlookJSON = { 
+      // key is file/repo name, key is content: they should all be strings
+        '.README.md': 'This is a README file',
+        '.github/config.json': 'github config',
+        '.github/workflow/fileA.txt': '',
+        '.github/workflow/fileB.txt': '',
+        '.github/workflow/CI/.travis.yml': 'travis config file'
+      };
+      vol.fromJSON(repoOutlookJSON, clonedPath);
+      //check if virtual memory file system is correctly set up
+      expect(vol.existsSync(clonedPath)).toBeTruthy();
+
+      const score = await calculateCorrectness(metrics, clonedPath);
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(1);
     });
 });
