@@ -17,30 +17,28 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
     log.info(`Starting ramp-up time calculation for directory: ${dir}`);
     let score = 0;
 
-    // (0.1) README_OR_NOT: bool = 0 (no) or 1 (yes)
+    // Check for README file
     const readmeScore = checkReadme(dir) ? 0.1 : 0;
-    log.debug(`README file score: ${readmeScore}`);
+    log.debug(`README file score: ${readmeScore}`); // Log the README score
     score += readmeScore;
 
-    // (0.4) Installation instruction (keywords: install, test, launch, run, example)
+    // Check for installation instructions
     const installScore = checkInstallationInstructions(dir) ? 0.4 : 0;
-    log.debug(`Installation instruction score: ${installScore}`);
+    log.debug(`Installation instruction score: ${installScore}`); // Log the installation instructions score
     score += installScore;
 
-    // (0.5) Code-to-comment ratio = #comments / (lines of code / 8)
+    // Calculate code-to-comment ratio
     const codeCommentRatioScore = calculateCodeCommentRatio(dir);
-    log.debug(`Code-to-comment ratio score: ${codeCommentRatioScore}`);
+    log.debug(`Code-to-comment ratio score: ${codeCommentRatioScore}`); // Log the code-to-comment ratio score
     score += codeCommentRatioScore;
 
     log.info(`Final ramp-up time score: ${score}`);
     return score;
   } catch (error) {
     log.error('Error calculating ramp-up time:', error);
-
     return 0;
   }
 }
-
 
 /*
   Function Name: checkReadme
@@ -49,13 +47,15 @@ export async function calculateRampUpTime(metrics: RepoDetails, dir: string): Pr
     - dir: string - The directory to search for a README file.
   @returns: boolean - True if a README file is found, false otherwise.
 */
-function checkReadme(dir: string): boolean {
+export function checkReadme(dir: string): boolean {
   log.info(`Checking for README file in directory: ${dir}`);
   const files = fs.readdirSync(dir);
+  log.debug(`Files found: ${files}`); // Log all files in the directory
   const readmeFiles = files.filter(file => /^README(\.md|\.txt)?$/i.test(file));
-  log.debug(`README files found: ${readmeFiles.length}`);
+  log.debug(`README files found: ${readmeFiles.length}`); // Log the number of README files found
   return readmeFiles.length > 0;
 }
+
 
 
 /*
@@ -65,18 +65,17 @@ function checkReadme(dir: string): boolean {
     - dir: string - The directory to search for README files.
   @returns: boolean - True if installation instructions are found, false otherwise.
 */
-function checkInstallationInstructions(dir: string): boolean {
+export function checkInstallationInstructions(dir: string): boolean {
   log.info(`Checking for installation instructions in README files in directory: ${dir}`);
   const files = fs.readdirSync(dir);
-  const readmeFiles = files.filter((file) =>
-    /^README(\.md|\.txt)?$/i.test(file),
-  );
+  const readmeFiles = files.filter((file) => /^README(\.md|\.txt)?$/i.test(file));
+  log.debug(`README files found for installation check: ${readmeFiles.length}`);
+  
   const keywords = ["install", "test", "launch", "run", "example"];
 
   for (const readmeFile of readmeFiles) {
-    const content = fs
-      .readFileSync(path.join(dir, readmeFile), "utf8")
-      .toLowerCase();
+    const content = fs.readFileSync(path.join(dir, readmeFile), "utf8").toLowerCase();
+    log.debug(`Checking README content for keywords: ${content}`);
     for (const keyword of keywords) {
       if (content.includes(keyword)) {
         log.debug(`Installation instructions found with keyword: ${keyword}`);
@@ -88,6 +87,7 @@ function checkInstallationInstructions(dir: string): boolean {
   return false;
 }
 
+
 /*
   Function Name: calculateCodeCommentRatio
   Description: Calculates the code-to-comment ratio score for the given directory.
@@ -95,15 +95,15 @@ function checkInstallationInstructions(dir: string): boolean {
     - dir: string - The directory to search for code files.
   @returns: number - The calculated code-to-comment ratio score.
 */
-function calculateCodeCommentRatio(dir: string): number {
-
+export function calculateCodeCommentRatio(dir: string): number {
   log.info('Calculating code-to-comment ratio score...');
   const allFiles = getAllFiles(dir);
+  log.debug(`Files found in directory for comment ratio calculation: ${allFiles}`);
+  
   const codeExtensions = ['.js', '.ts', '.py', '.java', '.c', '.cpp', '.cs', '.rb', '.go', '.php', '.swift', '.kt', '.kts'];
   const codeFiles = allFiles.filter(file => codeExtensions.includes(path.extname(file).toLowerCase()));
 
   log.debug(`Found ${codeFiles.length} code files for analysis.`);
-
   let totalLines = 0;
   let totalComments = 0;
 
@@ -130,6 +130,7 @@ function calculateCodeCommentRatio(dir: string): number {
   return score;
 }
 
+
 /*
   Function Name: getAllFiles
   Description: Recursively retrieves all files in a directory.
@@ -139,7 +140,7 @@ function calculateCodeCommentRatio(dir: string): number {
     - visitedPaths: Set<string> - A set of visited paths to avoid cycles.
   @returns: string[] - An array of file paths.
 */
-function getAllFiles(
+export function getAllFiles(
   dir: string,
   files?: string[],
   visitedPaths?: Set<string>,
@@ -148,12 +149,11 @@ function getAllFiles(
   visitedPaths = visitedPaths || new Set();
 
   log.info(`Reading directory: ${dir}`);
-  const entries = fs.readdirSync(dir);
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const entry of entries) {
-    const fullPath = path.join(dir, entry);
+    const fullPath = path.posix.join(dir, entry.name);  // Use posix to normalize path
 
-    // Check if we've already visited this path to avoid cycles
     if (visitedPaths.has(fullPath)) {
       continue;
     }
@@ -168,8 +168,7 @@ function getAllFiles(
     }
 
     if (stats.isSymbolicLink()) {
-      // Skip symbolic links to avoid infinite loops
-      continue;
+      continue; // Skip symbolic links to avoid infinite loops
     } else if (stats.isDirectory()) {
       getAllFiles(fullPath, files, visitedPaths);
     } else if (stats.isFile()) {
@@ -179,6 +178,8 @@ function getAllFiles(
   return files;
 }
 
+
+
 /*
   Function Name: countCommentLines
   Description: Counts the number of comment lines in the given lines of code based on the file extension.
@@ -187,7 +188,7 @@ function getAllFiles(
     - ext: string - The file extension.
   @returns: number - The number of comment lines.
 */
-function countCommentLines(lines: string[], ext: string): number {
+export function countCommentLines(lines: string[], ext: string): number {
   let singleLineComment = "//";
   let multiLineCommentStart = "/*";
   let multiLineCommentEnd = "*/";
@@ -215,18 +216,28 @@ function countCommentLines(lines: string[], ext: string): number {
 
     if (inMultiLineComment) {
       commentLines++;
-      if (trimmedLine.includes(multiLineCommentEnd)) {
+      // Check if this line ends the multi-line comment
+      if (trimmedLine === multiLineCommentEnd) {
         inMultiLineComment = false;
       }
     } else if (trimmedLine.startsWith(singleLineComment)) {
+      // Count single-line comments
       commentLines++;
+    } else if (trimmedLine === multiLineCommentStart) {
+      // If the line only contains the start of the multi-line comment, count it and enter multi-line mode
+      commentLines++;
+      inMultiLineComment = true;
     } else if (trimmedLine.includes(multiLineCommentStart)) {
+      // If the multi-line comment starts and ends on the same line, count it only once
       commentLines++;
       if (!trimmedLine.includes(multiLineCommentEnd)) {
         inMultiLineComment = true;
       }
     }
   }
-  log.debug(`Comment lines: ${commentLines}`);
+
   return commentLines;
 }
+
+
+
