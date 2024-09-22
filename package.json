@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Running tests...\" && jest --detectOpenHandles --verbose --coverage",
+    "test": "echo \"Running tests...\" && jest --verbose --coverage --detectOpenHandles",
     "cli": "ts-node cli.ts"
   },
   "keywords": [],

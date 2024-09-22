@@ -12,5 +12,7 @@ export default {
   transform: {
     "^.+.tsx?$": ["ts-jest",{}],
   }, 
-  testMatch: ['<rootDir>/test/*.ts']  //only run test scripts in the test folder
+  testResultsProcessor: "./testResultProcessor.ts",
+  collectCoverage: true,
+  testMatch: ['<rootDir>/test/*.test.ts']  //modify this to specify what tests to run 
 };
