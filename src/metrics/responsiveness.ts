@@ -43,6 +43,11 @@ export function calculateResponsiveness(metrics: RepoDetails): number {
     const startDateCommits =
       dateEarliestCommit > sixMonthsAgo ? dateEarliestCommit : sixMonthsAgo;
 
+    // Filter commits from the start date
+    const commitsFromStartDate = metrics.commitsData.filter(
+      (commit) => new Date(commit.commit.author.date) >= startDateCommits,
+    );
+
     // calculate weeks difference between start date and current date for commits
     const weeksDifferenceCommits = _calculateWeeksDifference(
       currentDate,
@@ -53,7 +58,7 @@ export function calculateResponsiveness(metrics: RepoDetails): number {
     // calculate commit frequency ratio
     const baselineAvgCommitFreqPerWeek = 10;
     const avgCommitsPerWeek =
-      metrics.commitsData.length / weeksDifferenceCommits;
+      commitsFromStartDate.length / weeksDifferenceCommits;
     commitFreqRatio = Math.min(
       Math.max(avgCommitsPerWeek / baselineAvgCommitFreqPerWeek, 0),
       1,
@@ -92,9 +97,11 @@ export function calculateResponsiveness(metrics: RepoDetails): number {
         closedIssuesPast6Months.length == 0
       )
     ) {
-      // Calculate avg week to close an issue
-      ratioClosedToOpenIssues =
-        closedIssuesPast6Months.length / issuesOpenedPast6Months.length;
+
+      // Calculate ratio of closed to open issues
+      ratioClosedToOpenIssues = _calculateRatioClosedToOpenIssues(closedIssuesPast6Months, issuesOpenedPast6Months);
+
+      // Calculate total time to close issues
       const totalTimeToCloseIssues = closedIssuesPast6Months.reduce(
         (total, issue) =>
           total +
@@ -102,18 +109,20 @@ export function calculateResponsiveness(metrics: RepoDetails): number {
             new Date(issue.created_at).getTime()),
         0,
       );
+
+      // Calculate avg week to close an issue
       const avgWeeksToCloseIssue =
-        totalTimeToCloseIssues /
-        millisecondsInAWeek /
+        (totalTimeToCloseIssues /
+        millisecondsInAWeek) /
         closedIssuesPast6Months.length;
 
-      // calculate avg weeks not lost x reciprocal weeks
       const weeksDifferenceIssues = _calculateWeeksDifference(
         currentDate,
         startDateIssues,
         millisecondsInAWeek,
       );
-
+      
+      // calculate avg weeks not lost x reciprocal weeks
       avgWeeksNotLostXReciprocalWeeks =
         (weeksDifferenceIssues - avgWeeksToCloseIssue) *
         (1 / weeksDifferenceIssues);
@@ -158,9 +167,16 @@ function _calculateWeeksDifference(
   millisecondsInAWeek: number,
 ): number {
   const timeDifferenceCommits = currentDate.getTime() - startDate.getTime();
-  let weeksDifference = Math.ceil(timeDifferenceCommits / millisecondsInAWeek);
-  if (weeksDifference == 0) {
+  let weeksDifference = timeDifferenceCommits / millisecondsInAWeek;
+  if (weeksDifference < 1) {
     weeksDifference = 1;
   }
   return weeksDifference;
+}
+
+function _calculateRatioClosedToOpenIssues(
+  closedIssuesPast6Months: any[],
+  issuesOpenedPast6Months: any[],
+): number {
+  return closedIssuesPast6Months.length / issuesOpenedPast6Months.length;
 }

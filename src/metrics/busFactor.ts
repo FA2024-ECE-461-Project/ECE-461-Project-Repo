@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 import { RepoDetails } from "../apiProcess/gitApiProcess";
 import { log } from "../logger";
-import axios from "axios";
+
 
 /*
   Function Name: calculateBusFactor

@@ -1,6 +1,7 @@
+//Check if package contain valid license
 import { RepoDetails } from "../apiProcess/gitApiProcess";
-
-// License map to scores
+import { log } from "../logger";
+// License map containing SPDX identifiers and their corresponding scores
 const licenseScoreMap: { [key: string]: number } = {
   // SPDX and full license names from your list
   "AFL-3.0": 0,
@@ -108,16 +109,26 @@ const licenseScoreMap: { [key: string]: number } = {
   "zLib License": 1,
 };
 
+/*
+  Function Name: calculateLicenseCompatibility
+  Description: This function calculates the license compatibility score for a repository based on the license found in the `RepoDetails`.
+  @params: 
+    - metrics: RepoDetails - The repository details containing the license information.
+  @returns: number - The license compatibility score based on the license, or 0 if no valid license is found.
+*/
 export function calculateLicenseCompatibility(metrics: RepoDetails): number {
   // Extract the license from the RepoDetails object
+  log.info(`Calculating license compatibility...`);
   const license = metrics.license;
 
   // Check if the exact license exists in the licenseScoreMap
   if (license && licenseScoreMap.hasOwnProperty(license)) {
-    //return the score
+    // Return the score if the license matches
+    log.info(`Finished calculating license compatibility. Exiting...`);
     return licenseScoreMap[license];
   }
 
   // Return 0 if no valid license is found in the map
+  log.info(`No valid license found. Exiting...`);
   return 0;
 }

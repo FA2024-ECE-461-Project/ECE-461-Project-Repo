@@ -1,32 +1,37 @@
 # ECE-461-Project-Repo
+A Command Line Interface (CLI) tool designed to evaluate and score npm packages based on various quality and popularity metrics. This project automates the analysis of npm packages, providing insights for developers looking to assess the reliability of open-source software.
 
-## This is a ECE461 Team Project Repository
+## ECE 461 Team Project Repository
+This repository contains the code and resources for our ECE 461 team project.
 
-Team Members:
-- Jimmy
+## Team Members:
+- Jimmy Ho
 - Gaurav Vermani
-- Ryan 
+- Ryan Lin
 - Nick Ko
 
-## Environment Setup
-*  Before developement/test run, or right after git pull, run ```npm install ``` to install all packages required. 
-* .gitignore ignores node_modules/
-
-
-
-## Running Tests
-Jest is the testing framework we choose. Please run the command 
+### Environment Setup
+To set up the environment and install all necessary dependencies for the project, run the following command:
 ```
-npm install
+./run install
 ```
-to install all dependencies required for Jest. (Nick's understanding, can be wrong tho)
-### Structuring Unit Tests
-* for each functionality, write their tests in separate files that has the form "<functionailty_name>.test.ts". E.g. I'll create a cli.test.ts file in the test/ folder to test CLI code.
-* use the following command in terminal to run your test script (I guess it might break if we have more .test.ts files in the directory tho, but we can work on that later).
+This command will automatically fetch and install all required npm packages, ensuring the environment is ready for use.
+
+### Running Tests
+We use Jest for unit testing to ensure the reliability and correctness of our code. Jest is a widely used testing framework that provides a clean way to test our functions and catch errors before deployment.
+
+To execute the test suite, run:
+
 ```
 ./run test
 ```
-* Tutorial I (Nick) followed that has a short section (with code) that tells you how to set up jest tests. 
+This command will trigger Jest to run all defined test cases, providing a detailed report of pass/fail statuses and helping you catch issues early in development.
 
-https://dev.to/ghostaram/configuring-jest-for-typescript-unit-tests-4iag
+### Running the Program
+To start the main program and analyze npm packages based on URLs provided in a file, use the following command:
 
+```
+./run URL_FILE
+```
+
+Here, URL_FILE refers to a text file (such as url.txt) that contains a list of npm package URLs or names. The program will process each package, compute its score, and provide a detailed report on the quality of each package.
