@@ -1,12 +1,9 @@
 //calculate correctness
 import axios from "axios";
 import * as fs from "fs";
-import exp from "node:constants";
 import { RepoDetails } from "../apiProcess/gitApiProcess";
 import * as path from "path";
-import * as util from "util";
 import * as dotenv from "dotenv";
-import { serialize } from "v8";
 import { log } from "../logger";
 dotenv.config(); // Load environment variables from a .env file into process.env
 
@@ -264,4 +261,4 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   return coverageScore;
 }
 
-export { calculateCorrectness , __findSrc, __findTest, __countFilesInDirectory, _getCoverageScore, _getCIFilesScore, _computeOpenToClosedIssueRatio};
+export { calculateCorrectness };
