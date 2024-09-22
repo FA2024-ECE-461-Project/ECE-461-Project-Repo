@@ -81,8 +81,8 @@ export function extractOwnerAndRepo(gitHubUrl: string): RepoInfo {
   const match = gitHubUrl.match(regex);
 
   if (!match || match.length < 3) {
-    log.error("Invalid GitHub URL");
-    throw new Error("Invalid GitHub URL");
+    log.error("Invalid GitHub URL - unable to extract owner and repo.");
+    process.exit(1);
   }
 
   const owner = match[1];
@@ -122,8 +122,8 @@ export function extractPackageNameFromUrl(url: string): string {
     return repo;
   }
 
-  log.error("Invalid URL");
-  throw new Error("Invalid URL");
+  console.error("Invalid URL - unable to extract package name.");
+  process.exit(1);
 }
 
 /*
@@ -143,7 +143,7 @@ export async function processUrl(
 
   if (UrlType === "invalid") {
     log.error("Invalid URL type, cannot process.");
-    throw new Error("Invalid URL type");
+    process.exit(1);
   }
 
   let owner: string = "";

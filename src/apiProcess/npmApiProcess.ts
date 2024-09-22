@@ -41,15 +41,15 @@ export async function getGitHubRepoFromNpmUrl(
       log.info(`GitHub repository URL found for ${packageName}: ${sanitizedUrl}`);
       return sanitizedUrl;
     } else {
-      log.warn(`GitHub repository URL not found in package metadata for ${packageName}`);
-      throw new Error("GitHub repository URL not found in package metadata");
+      console.error(`GitHub repository URL not found in package metadata for ${packageName}`);
+      process.exit(1);
     }
   } catch (error) {
-    log.error(
+    console.error(
       `getGitHubRepoFromNpmUrl: Failed to fetch data for ${packageName}:`,
       error
     );
-    throw error;
+    process.exit(1);
   }
 }
 
