@@ -16,7 +16,7 @@ import { log } from "../logger";
     - args: A[] - The arguments to pass to the function.
   @returns: Promise<{ value: T, latency: number }> - The function's result and the time taken in seconds.
 */
-async function measureLatency<T, A extends any[]>(
+export async function measureLatency<T, A extends any[]>(
   fn: (...args: A) => Promise<T> | T,
   ...args: A
 ): Promise<{ value: T; latency: number }> {
@@ -79,6 +79,7 @@ export async function GetNetScore(
     const removeResult = await removeRepo(clonedPath);
     if (!removeResult) {
       log.error("Failed to remove cloned repository");
+      return null;
     }
 
     log.info(`Calculating final NetScore...`);
@@ -118,6 +119,7 @@ export async function GetNetScore(
   } catch (error) {
     log.error(`GetNetScore: Failed to calculate metrics for ${url}`, error);
     return null;
+    //do we exit here?
   } finally {
     if (dir && fs.existsSync(dir)) {
       log.info(`Cleaning up: Removing directory ${dir}`);

@@ -47,7 +47,6 @@ export async function cli() {
 
         // Calculate the metrics for the given owner and repo
         const metrics = await GetNetScore(owner, repo, url);
-
         // Print the results in JSON format
         console.log(JSON.stringify(metrics, null, 2)); // For pretty printing in output
       } catch (error) {
