@@ -420,10 +420,7 @@ function _handleError(error: any, context: string): void {
     if (error.response) {
       const status = error.response.status;
       if ( (status == 403 || status == 429) && error.response.headers['x-ratelimit-remaining'] === '0') {
-        const resetTime = new Date(parseInt(error.response.headers['x-ratelimit-reset']) * 1000);
-        const currentTime = new Date();
-        const waitTime = Math.ceil((resetTime.getTime() - currentTime.getTime()) / 1000 / 60); // in minutes
-        console.error(`Error: Rate limit exceeded. Please try again in ${waitTime} minutes.`);
+        console.error(`Error: Rate limit exceeded.`);
       } else if (status == 401) {
         console.error("Error: Unauthorized. Invalid or missing GitHub Token.");
       } else if (status == 403) {
