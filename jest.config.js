@@ -12,5 +12,5 @@ export default {
   transform: {
     "^.+.tsx?$": ["ts-jest",{}],
   }, 
-  testMatch: ['<rootDir>/test/apiProcess.test.(js|ts)']  //modify this line to specify which test file to run
+  testMatch: ['<rootDir>/test/*.test.(js|ts)']  //modify this line to specify which test file to run
 };

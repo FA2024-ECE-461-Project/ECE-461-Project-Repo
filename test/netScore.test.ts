@@ -9,6 +9,8 @@ import { cloneRepo, removeRepo } from '../src/metrics/clone_repo';
 import * as fs from 'fs';
 import { log } from '../src/logger';
 import { clone } from 'isomorphic-git';
+import { REFUSED } from 'dns';
+import exp from 'constants';
 
 // Mock the logger to avoid actual logging during tests
 jest.mock('../src/logger', () => ({
@@ -20,7 +22,6 @@ jest.mock('../src/logger', () => ({
 
   
 // Mock the dependencies
-jest.mock('../src/metrics/netScore');
 jest.mock('../src/apiProcess/gitApiProcess');
 jest.mock('../src/metrics/rampUpTime');
 jest.mock('../src/metrics/responsiveness');
@@ -95,17 +96,25 @@ describe('GetNetScore', () => {
         contributorsData: [],
       };
     (getGithubInfo as jest.Mock).mockResolvedValue(metrics);
-    // Mock metric calculations with latency
+    // Mock metric calculations with latency 
     (cloneRepo as jest.Mock).mockResolvedValue(true);
     (removeRepo as jest.Mock).mockResolvedValue(true);
-    (calculateRampUpTime as jest.Mock).mockResolvedValue({ value: 0.8, latency: 0.1 });
-    (calculateResponsiveness as jest.Mock).mockResolvedValue({ value: 0.9, latency: 0.1 });
-    (calculateLicenseCompatibility as jest.Mock).mockResolvedValue({ value: 1.0, latency: 0.1 });
-    (calculateBusFactor as jest.Mock).mockResolvedValue({ value: 0.7, latency: 0.1 });
-    (calculateCorrectness as jest.Mock).mockResolvedValue({ value: 0.85, latency: 0.1 });
+    (calculateRampUpTime as jest.Mock).mockResolvedValue(0.8);
+    (calculateResponsiveness as jest.Mock).mockResolvedValue(0.9);
+    (calculateLicenseCompatibility as jest.Mock).mockResolvedValue(1.0);
+    (calculateBusFactor as jest.Mock).mockResolvedValue(0.7);
+    (calculateCorrectness as jest.Mock).mockResolvedValue(0.85);
     
     const result = await GetNetScore(owner, repo, url);
+   
     expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
+    if(result !== null && result !== undefined) {
+      expect(result.NetScore).not.toBeNull();
+      expect(result.NetScore).toBeGreaterThanOrEqual(0);
+      expect(result.NetScore).toBeLessThanOrEqual(1);
+    }
+   
   });
 
 
