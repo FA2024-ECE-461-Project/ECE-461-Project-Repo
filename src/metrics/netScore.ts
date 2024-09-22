@@ -61,7 +61,6 @@ export async function GetNetScore(
     const clonedPath = await cloneRepo(repoUrl);
     let clone_time = (new Date().getTime() - start_clone) / 1000;
     log.info(`Repository cloned to ${clonedPath}. Clone time: ${clone_time}s`);
-
     log.info(`Calculating repository metrics...`);
     const [rampUpTime, responsiveness] = await Promise.all([
       measureLatency(calculateRampUpTime, gitInfo, clonedPath),

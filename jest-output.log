@@ -1,0 +1,162 @@
+
+> ece-461-project-repo@1.0.0 test
+> echo "Running tests..." && jest --detectOpenHandles --verbose --coverage --json --outputFile=test-results.json --coverage --coverageReporters=json-summary
+
+Running tests...
+PASS test/logger.test.ts
+  Logger Module
+    ✓ should exit if LOG_FILE is not set (25 ms)
+    ✓ should exit if LOG_FILE does not exist (4 ms)
+
+PASS test/cli.test.ts
+  cli
+    ✓ should log error and exit if no file path is provided (2 ms)
+    ✓ should log error and exit if file cannot be read (2 ms)
+    ✓ should log error and exit if URL processing fails (1 ms)
+    ✓ should process URLs and log metrics (1 ms)
+
+PASS test/correctness.test.ts
+  calculateCorrectness with almost complete repository
+    ✓ should give a score >= 0.5 with a complete repo (37 ms)
+    ✓ should score <= 0.5 if src/ is empty (3 ms)
+    ✓ should score a 0 if src/ does not exist  (3 ms)
+    ✓ should score a 0 if test/ does not exist  (3 ms)
+    ✓ should score a 0 with only deeply hidden ci/cd file (6 ms)
+
+  console.error
+    Invalid URL - unable to extract package name.
+
+      123 |   }
+      124 |
+    > 125 |   console.error("Invalid URL - unable to extract package name.");
+          |           ^
+      126 |   process.exit(1);
+      127 | }
+      128 |
+
+      at error (src/utils/urlUtils.ts:125:11)
+      at test/urlUtils.test.ts:88:51
+      at Object.<anonymous> (node_modules/expect/build/toThrowMatchers.js:74:11)
+      at Object.throwingMatcher [as toThrow] (node_modules/expect/build/index.js:320:21)
+      at Object.<anonymous> (test/urlUtils.test.ts:88:58)
+
+PASS test/urlUtils.test.ts
+  urlUtils
+    extractOwnerAndRepo
+      ✓ should extract owner and repo from a valid GitHub URL (1 ms)
+      ✓ should exit with return code 1 for invalid owner and repo (10 ms)
+    checkUrlType
+      ✓ should identify a GitHub URL
+      ✓ should identify an npm URL (1 ms)
+      ✓ should identify an invalid URL (1 ms)
+    convertSshToHttps
+      ✓ should convert a GitHub SSH URL to HTTPS
+      ✓ should return the original URL if it is not an SSH URL (1 ms)
+    extractPackageNameFromUrl
+      ✓ should extract npm package name from a valid npm URL (1 ms)
+      ✓ should extract GitHub repo name from a valid GitHub URL
+      ✓ should exit with rc1 for invalid URL (17 ms)
+    processUrl
+      ✓ should process a GitHub URL and return owner and repo
+      ✓ should process an npm URL and return owner and repo (1 ms)
+      ✓ should return with rc1 for an invalid URL type (1 ms)
+
+PASS test/npmApiProcess.test.ts
+  getGitHubRepoFromNpmUrl
+    ✓ should return the GitHub repository URL when it is available (1 ms)
+    ✓ should exit the process when the repository URL is not available (12 ms)
+    ✓ should handle axios errors and exit the process (1 ms)
+  getNpmPackageInfo
+    ✓ should return package info when data is available (4 ms)
+    ✓ should handle missing fields and provide default values (1 ms)
+    ✓ should handle errors and return default package info
+
+PASS test/rampUpTime.test.ts
+  calculateRampUpTime
+    ✓ should return correct score when README and install instructions exist (3 ms)
+    ✓ should return 0 when no README exists (2 ms)
+  checkReadme
+    ✓ should return true if README file exists (1 ms)
+    ✓ should return false if README file does not exist (2 ms)
+  checkInstallationInstructions
+    ✓ should return true if installation instructions are found (1 ms)
+    ✓ should return false if no installation instructions are found (1 ms)
+  calculateCodeCommentRatio
+    ✓ should calculate the correct code-to-comment ratio for JavaScript (2 ms)
+    ✓ should calculate the correct code-to-comment ratio for Python (1 ms)
+    ✓ should calculate the correct code-to-comment ratio for Python multi-line comments (2 ms)
+    ✓ should calculate the correct code-to-comment ratio for Ruby (1 ms)
+    ✓ should calculate the correct code-to-comment ratio for Ruby multi-line comments (1 ms)
+    ✓ should return 0 if no comments are present in code files (2 ms)
+    ✓ should return 0 if no code files are found (1 ms)
+  getAllFiles
+    ✓ should retrieve all files from directory recursively (2 ms)
+    ✓ should handle empty directories (2 ms)
+    ✓ should skip symbolic links (2 ms)
+
+PASS test/apiProcess.test.ts
+  GitHub API Process Functions
+    _fetchRepoData
+      ✓ should fetch repository data successfully (1 ms)
+    _fetchLicense
+      ✓ should fetch license information successfully (1 ms)
+      ✓ should handle no license scenario (1 ms)
+    _fetchLatestCommits
+      ✓ should fetch latest commits successfully (1 ms)
+    _fetchLatestIssues
+      ✓ should fetch latest issues successfully (1 ms)
+    _fetchContributors
+      ✓ should fetch contributors successfully (1 ms)
+
+PASS test/clone_repo.test.ts
+  cloneRepo
+    ✓ should clone a repository with a valid GitHub URL (1 ms)
+    ✓ should throw an error with an invalid GitHub URL (7 ms)
+    ✓ should throw an error with a malformed URL (1 ms)
+    ✓ should not create directory if repo path already exists (1 ms)
+  removeRepo
+    ✓ should remove the repository when the path is valid and exists
+    ✓ should throw an error when the repository does not exist
+    ✓ should prevent removal outside the project directory (1 ms)
+    ✓ should prevent removal of the project directory itself (1 ms)
+    ✓ should handle errors during repository removal (1 ms)
+
+PASS test/netScore.test.ts
+  GetNetScore
+    ✓ should calculate NetScore correctly (2 ms)
+
+PASS test/responsiveness.test.ts
+  calculateResponsiveness
+    ✓ should return 0 when there are no commits and no issues
+    ✓ should calculate commit frequency ratio correctly
+    ✓ should handle mixed data correctly (1 ms)
+    ✓ should return a value between 0 and 1
+    ✓ should return a value of 1 when all issues opened and closed yesterday (1 ms)
+    ✓ should return a value 0-1 for commits and issues 6 months ago (1 ms)
+
+PASS test/licenseCompatibility.test.ts
+  calculateLicenseCompatibility
+    ✓ should return correct score for a valid license (MIT) (1 ms)
+    ✓ should return correct score for a valid license (Apache-2.0) (1 ms)
+    ✓ should return 0 for an invalid or unknown license
+
+PASS test/fileUtils.test.ts
+  readUrlsFromFile
+    ✓ should read URLs from a file and return an array of URLs (1 ms)
+    ✓ should reject the promise if there is an error reading the file
+    ✓ should filter out empty lines from the file content (1 ms)
+    ✓ should return an empty array if the file contains only empty lines (1 ms)
+
+PASS test/busFactor.test.ts
+  calculateBusFactor
+    ✓ should calculate bus factor for multiple contributors (1 ms)
+    ✓ should handle no contributors (1 ms)
+    ✓ should handle one contributor
+    ✓ should handle one contributor but no commits (1 ms)
+
+Test Suites: 13 passed, 13 total
+Tests:       79 passed, 79 total
+Snapshots:   0 total
+Time:        2.379 s
+Ran all test suites.
+Test results written to: test-results.json
