@@ -120,27 +120,63 @@ describe('calculateCodeCommentRatio', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it ('should calculate the correct code-to-comment ratio', async () => {
+  // Test for JavaScript files
+  it('should calculate the correct code-to-comment ratio for JavaScript', async () => {
     writeFile(tempDir, 'index.js', '// This is a comment\nconsole.log("Hello, world!");');
-
+    
     const result = calculateCodeCommentRatio(tempDir);
     expect(result).toBeGreaterThan(0); // Expect positive score due to comments in the file
   });
 
-  it('should return 0 if no code files are found', async () => {
-    writeFile(tempDir, 'README.md', 'This is a README without any code files.');
-
+  // Test for Python files
+  it('should calculate the correct code-to-comment ratio for Python', async () => {
+    writeFile(tempDir, 'script.py', '# This is a comment\nprint("Hello, world!")\n');
+    
     const result = calculateCodeCommentRatio(tempDir);
-    expect(result).toBe(0); // No code files, score should be zero
+    expect(result).toBeGreaterThan(0); // Expect positive score due to comments in the file
   });
 
-  it ('should return 0 if no comments are present in code files', async () => {
-    writeFile(tempDir, 'index.js', 'console.log("Hello, world!");'); // No comments at all
+  // Test for Python multi-line comments
+  it('should calculate the correct code-to-comment ratio for Python multi-line comments', async () => {
+    writeFile(tempDir, 'script.py', `'''\nThis is a multi-line comment\n'''\nprint("Hello, world!")`);
+    
+    const result = calculateCodeCommentRatio(tempDir);
+    expect(result).toBeGreaterThan(0); // Expect positive score due to multi-line comments
+  });
 
+  // Test for Ruby files
+  it('should calculate the correct code-to-comment ratio for Ruby', async () => {
+    writeFile(tempDir, 'script.rb', '# This is a comment\nputs "Hello, world!"');
+    
+    const result = calculateCodeCommentRatio(tempDir);
+    expect(result).toBeGreaterThan(0); // Expect positive score due to comments in the file
+  });
+
+  // Test for Ruby multi-line comments
+  it('should calculate the correct code-to-comment ratio for Ruby multi-line comments', async () => {
+    writeFile(tempDir, 'script.rb', `=begin\nThis is a multi-line comment\n=end\nputs "Hello, world!"`);
+    
+    const result = calculateCodeCommentRatio(tempDir);
+    expect(result).toBeGreaterThan(0); // Expect positive score due to multi-line comments
+  });
+
+  // Test for no comments present
+  it('should return 0 if no comments are present in code files', async () => {
+    writeFile(tempDir, 'index.js', 'console.log("Hello, world!");'); // No comments at all
+    
     const result = calculateCodeCommentRatio(tempDir);
     expect(result).toBe(0); // No comments, score should be zero
   });
+
+  // Test for no code files found
+  it('should return 0 if no code files are found', async () => {
+    writeFile(tempDir, 'README.md', 'This is a README without any code files.');
+    
+    const result = calculateCodeCommentRatio(tempDir);
+    expect(result).toBe(0); // No code files, score should be zero
+  });
 });
+
 
 describe('getAllFiles', () => {
   let tempDir: string;
