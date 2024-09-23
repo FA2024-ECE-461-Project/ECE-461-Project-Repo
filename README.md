@@ -35,3 +35,13 @@ To start the main program and analyze npm packages based on URLs provided in a f
 ```
 
 Here, URL_FILE refers to a text file (such as url.txt) that contains a list of npm package URLs or names. The program will process each package, compute its score, and provide a detailed report on the quality of each package.
+
+### Errors and Error Handling
+
+The actions in the following list will lead to the invocation of console.error('...') and process termination with a return code of 1:
+- Invalid or missing LOG_FILE path
+- Invalid URL file path
+- Invalid or missing GitHub Token
+- Invalid URL
+- Exceeding GitHub rate limit
+- Any other HTTP response status codes from 400 to 600, inclusive, when fetching GitHub data
