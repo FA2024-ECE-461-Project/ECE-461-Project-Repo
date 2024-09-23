@@ -1,85 +1,131 @@
-import { getGithubInfo } from "../src/apiProcess/gitApiProcess";
-import axios from "axios";
+import axios, { AxiosError, isAxiosError } from "axios";
 import { log } from "../src/logger";
+import {
+  _fetchRepoData,
+  _fetchLicense,
+  _fetchLatestCommits,
+  _fetchLatestIssues,
+  _fetchContributors,
+  _handleError,
+} from "../src/apiProcess/gitApiProcess";
 
-jest.mock("axios");
-jest.mock('../src/logger', () => ({
+// Mock axios and logger
+jest.mock("axios", () => ({
+  get: jest.fn(),
+}));
+jest.mock("../src/logger", () => ({
   log: {
     info: jest.fn(),
     debug: jest.fn(),
-    error: jest.fn()
+    error: jest.fn(),
   },
 }));
 
-const exitSpy = jest.spyOn(process, 'exit').mockImplementation((code) => {
-throw new Error(`process.exit: ${code}`);
-});
-
-describe("getGithubInfo", () => {
-  const owner = "testOwner";
-  const repo = "testRepo";
-
+describe("GitHub API Process Functions", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("should fetch repository details successfully", async () => {
-    const repoData = {
-      createdAt: "2022-01-01T00:00:00Z",
-      stargazers_count: 100,
-      forks_count: 50,
-      license: { name: "MIT" },
-    };
+  describe("_fetchRepoData", () => {
+    it("should fetch repository data successfully", async () => {
+      const mockRepoData = { name: "mockRepo", owner: { login: "mockOwner" } };
+      (axios.get as jest.Mock).mockResolvedValue({ data: mockRepoData });
 
-    const commitsData = [
-      { commit: { author: { date: "2022-01-01T00:00:00Z" } } },
-    ];
-
-    const issuesData = [
-      { createdAt: "2022-01-01T00:00:00Z" },
-    ];
-
-    const contributorsData = {
-      data: [{ login: "contributor1" }],
-    };
-
-    (axios.get as jest.Mock).mockImplementation((url: string) => {
-      if (url.includes("/repos/")) {
-        return Promise.resolve({ data: repoData });
-      } else if (url.includes("/commits")) {
-        return Promise.resolve({ data: commitsData });
-      } else if (url.includes("/issues")) {
-        return Promise.resolve({ data: issuesData });
-      } else if (url.includes("/stats/contributors")) {
-        return Promise.resolve(contributorsData);
-      }
-      return Promise.reject(new Error("Unknown URL"));
+      const result = await _fetchRepoData("mockOwner", "mockRepo");
+      expect(result).toEqual(mockRepoData);
+      expect(axios.get).toHaveBeenCalledWith(
+        "https://api.github.com/repos/mockOwner/mockRepo",
+        { headers: { Authorization: `token ${process.env.GITHUB_TOKEN}` } },
+      );
     });
-
-    const result = await getGithubInfo(owner, repo);
-
-    expect(result).toEqual({
-      owner: owner,
-      repo: repo,
-      createdAt: repoData.createdAt,
-      stars: repoData.stargazers_count,
-      openIssues: issuesData.length,
-      forks: repoData.forks_count,
-      license: repoData.license.name,
-      commitsData: commitsData,
-      issuesData: issuesData,
-      contributorsData: contributorsData.data,
-    });
-
-    expect(log.info).toHaveBeenCalledWith(`Entering getGithubInfo for ${owner}/${repo}`);
-    expect(log.info).toHaveBeenCalledWith(`Exiting getGithubInfo for ${owner}/${repo}`);
   });
 
-  it("should handle errors gracefully", async () => {
-    (axios.get as jest.Mock).mockRejectedValue(exitSpy);
+  describe("_fetchLicense", () => {
+    it("should fetch license information successfully", async () => {
+      const mockRepoData = { license: { name: "MIT" } };
+      const result = await _fetchLicense(mockRepoData, "mockOwner", "mockRepo");
+      expect(result).toBe("MIT");
+    });
 
-    await expect(getGithubInfo(owner, repo)).rejects.toThrow("API Error");
+    it("should handle no license scenario", async () => {
+      const mockRepoData = { license: null };
+      (axios.get as jest.Mock).mockResolvedValue({
+        data: { content: Buffer.from("MIT License").toString("base64") },
+      });
 
-    expect(log.info).toHaveBeenCalledWith(`Entering getGithubInfo for ${owner}/${repo}`);
+      const result = await _fetchLicense(mockRepoData, "mockOwner", "mockRepo");
+      expect(result).toBe("MIT License");
+    });
+  });
+
+  describe("_fetchLatestCommits", () => {
+    it("should fetch latest commits successfully", async () => {
+      const mockCommits = [
+        { commit: { author: { date: "2022-01-01T00:00:00Z" } } },
+      ];
+      (axios.get as jest.Mock).mockResolvedValue({ data: mockCommits });
+
+      const result = await _fetchLatestCommits(
+        "mockOwner",
+        "mockRepo",
+        new Date("2021-01-01T00:00:00Z"),
+        100,
+        1,
+      );
+      expect(result).toEqual(mockCommits);
+      expect(axios.get).toHaveBeenCalledWith(
+        "https://api.github.com/repos/mockOwner/mockRepo/commits",
+        {
+          params: {
+            per_page: 100,
+            page: 1,
+            since: new Date("2021-01-01T00:00:00Z").toISOString(),
+          },
+          headers: { Authorization: `token ${process.env.GITHUB_TOKEN}` },
+        },
+      );
+    });
+  });
+
+  describe("_fetchLatestIssues", () => {
+    it("should fetch latest issues successfully", async () => {
+      const mockIssues = [{ createdAt: "2022-01-01T00:00:00Z" }];
+      (axios.get as jest.Mock).mockResolvedValue({ data: mockIssues });
+
+      const result = await _fetchLatestIssues(
+        "mockOwner",
+        "mockRepo",
+        100,
+        1,
+        new Date("2021-01-01T00:00:00Z"),
+      );
+      expect(result).toEqual(mockIssues);
+      expect(axios.get).toHaveBeenCalledWith(
+        "https://api.github.com/repos/mockOwner/mockRepo/issues",
+        {
+          params: {
+            state: "all",
+            per_page: 100,
+            page: 1,
+            since: new Date("2021-01-01T00:00:00Z"),
+          },
+          headers: { Authorization: `token ${process.env.GITHUB_TOKEN}` },
+        },
+      );
+    });
+  });
+
+  describe("_fetchContributors", () => {
+    it("should fetch contributors successfully", async () => {
+      const mockContributors = [{ login: "contributor1" }];
+      (axios.get as jest.Mock).mockResolvedValue(mockContributors);
+
+      const result = await _fetchContributors("mockOwner", "mockRepo");
+      expect(result).toEqual(mockContributors);
+      expect(axios.get).toHaveBeenCalledWith(
+        "https://api.github.com/repos/mockOwner/mockRepo/stats/contributors",
+        { headers: { Authorization: `token ${process.env.GITHUB_TOKEN}` } },
+      );
+    });
   });
 });

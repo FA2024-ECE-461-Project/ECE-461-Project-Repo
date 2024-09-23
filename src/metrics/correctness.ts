@@ -47,36 +47,40 @@ function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
   // get current date
   const currentDate = new Date();
   // constant value to convert time difference to weeks
-  if(metric.issuesData.length == 0) {
+  if (metric.issuesData.length == 0) {
     return 0;
   }
 
   // Determine the start date for the 6-month period (or less if not enough data)
-    const dateEarliestIssue = new Date(
-      metric.issuesData[metric.issuesData.length - 1].created_at,
-    );
+  const dateEarliestIssue = new Date(
+    metric.issuesData[metric.issuesData.length - 1].created_at,
+  );
 
-    const startDateIssues = dateEarliestIssue > sixMonthsAgo ? dateEarliestIssue : sixMonthsAgo;
+  const startDateIssues =
+    dateEarliestIssue > sixMonthsAgo ? dateEarliestIssue : sixMonthsAgo;
 
-    // Calculate = number of issues closed in the past 6 months that were opened
-    //             in the past 6 months / number of issues created in the past 6 months
-    const issues = metric.issuesData;
-    const issuesOpenedPast6Months = issues.filter(
-      (issue) => new Date(issue.created_at) >= startDateIssues,
-    );
-    const closedIssuesPast6Months = issuesOpenedPast6Months.filter(
-      (issue) => issue.state === "closed",
-    );
+  // Calculate = number of issues closed in the past 6 months that were opened
+  //             in the past 6 months / number of issues created in the past 6 months
+  const issues = metric.issuesData;
+  const issuesOpenedPast6Months = issues.filter(
+    (issue) => new Date(issue.created_at) >= startDateIssues,
+  );
+  const closedIssuesPast6Months = issuesOpenedPast6Months.filter(
+    (issue) => issue.state === "closed",
+  );
 
-    if (!( issuesOpenedPast6Months.length == 0 || closedIssuesPast6Months.length == 0)) {
-      // Calculate avg week to close an issue
-      ratioClosedToOpenIssues = closedIssuesPast6Months.length / issuesOpenedPast6Months.length; const millisecondsInAWeek = 1000 * 60 * 60 * 24 * 7;
-    }
+  if (
+    !(
+      issuesOpenedPast6Months.length == 0 || closedIssuesPast6Months.length == 0
+    )
+  ) {
+    // Calculate avg week to close an issue
+    ratioClosedToOpenIssues =
+      closedIssuesPast6Months.length / issuesOpenedPast6Months.length;
+    const millisecondsInAWeek = 1000 * 60 * 60 * 24 * 7;
+  }
   return ratioClosedToOpenIssues;
 }
-
-
-
 
 /*  Searching the entire repo in BFS manner for the test and src folders
  *  @param directoryPath: string - the path of the directory to search
@@ -84,18 +88,25 @@ function _computeOpenToClosedIssueRatio(metric: RepoDetails): number {
  *  @param maxDepth: number - the maximum depth to search for the folder: defalut to 2
  *  @returns string | null - the path of the test folder or null if not found
  * */
-async function __findSrc( directoryPath: string, maxDepth: number = 2): Promise<string | null> {
-  if(!fs.existsSync(directoryPath)) {
+async function __findSrc(
+  directoryPath: string,
+  maxDepth: number = 2,
+): Promise<string | null> {
+  if (!fs.existsSync(directoryPath)) {
     return null;
   }
   // BFS for the src folder
   const srcPattern = /^(src|source|sources|lib|app|package|packages|main)$/;
-  const queue: { path: string, depth: number }[] = [{ path: directoryPath, depth: 0 }];
+  const queue: { path: string; depth: number }[] = [
+    { path: directoryPath, depth: 0 },
+  ];
 
   while (queue.length > 0) {
     //deconstructing assignment that inits currentPath and currentDepth to the first element in the queue
     const { path: currentPath, depth: currentDepth } = queue.shift()!;
-    const namesInFolder = await fs.promises.readdir(currentPath, { withFileTypes: true });
+    const namesInFolder = await fs.promises.readdir(currentPath, {
+      withFileTypes: true,
+    });
 
     for (const folder of namesInFolder) {
       if (folder.isDirectory()) {
@@ -103,10 +114,13 @@ async function __findSrc( directoryPath: string, maxDepth: number = 2): Promise<
           const completePath = path.join(currentPath, folder.name);
           log.info(`In _findSrc, found source in ${completePath}`);
           return completePath;
-        } 
+        }
         if (currentDepth < maxDepth) {
           // enqueue current folder and assign depth for further search
-          queue.push({ path: path.join(currentPath, folder.name), depth: currentDepth + 1 });
+          queue.push({
+            path: path.join(currentPath, folder.name),
+            depth: currentDepth + 1,
+          });
         }
       }
     }
@@ -115,13 +129,20 @@ async function __findSrc( directoryPath: string, maxDepth: number = 2): Promise<
   return null;
 }
 
-async function __findTest( directoryPath: string, maxDepth: number = 2): Promise<string | null> {
+async function __findTest(
+  directoryPath: string,
+  maxDepth: number = 2,
+): Promise<string | null> {
   const testPattern = /^(test|tests|spec|__tests__|__test__)$/;
-  const queue: { path: string, depth: number }[] = [{ path: directoryPath, depth: 0 }];
+  const queue: { path: string; depth: number }[] = [
+    { path: directoryPath, depth: 0 },
+  ];
 
   while (queue.length > 0) {
     const { path: currentPath, depth: currentDepth } = queue.shift()!;
-    const namesInFolder = await fs.promises.readdir(currentPath, { withFileTypes: true });
+    const namesInFolder = await fs.promises.readdir(currentPath, {
+      withFileTypes: true,
+    });
 
     for (const folder of namesInFolder) {
       if (folder.isDirectory()) {
@@ -131,7 +152,10 @@ async function __findTest( directoryPath: string, maxDepth: number = 2): Promise
           return completePath;
         } else if (currentDepth < maxDepth) {
           // enqueue current folder and assign depth for further search
-          queue.push({ path: path.join(currentPath, folder.name), depth: currentDepth + 1 });
+          queue.push({
+            path: path.join(currentPath, folder.name),
+            depth: currentDepth + 1,
+          });
         }
       }
     }
@@ -162,11 +186,13 @@ async function __countFilesInDirectory(
 }
 
 async function _getCIFilesScore(clonedPath: string): Promise<number> {
-
-  const ciFilesPattern = /^(.travis.yml|circle.yml|Jenkinsfile|azure-pipelines.yml|ci(-[a-z])*.yml)$/;
+  const ciFilesPattern =
+    /^(.travis.yml|circle.yml|Jenkinsfile|azure-pipelines.yml|ci(-[a-z])*.yml)$/;
 
   async function searchDirectory(directory: string): Promise<number> {
-    const filesInRepo = await fs.promises.readdir(directory, { withFileTypes: true });
+    const filesInRepo = await fs.promises.readdir(directory, {
+      withFileTypes: true,
+    });
     for (const file of filesInRepo) {
       const fullPath = path.join(directory, file.name);
       if (file.isDirectory()) {
@@ -217,11 +243,11 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
     __countFilesInDirectory(testFolderPath),
     __countFilesInDirectory(srcFolderPath),
   ]);
-  
+
   let repoScore = 0;
   // handle if there are more tests than source files
   if (numTests > numSrc) {
-    // when there are more tests than source files: first gauge how much more tests  there are than source files 
+    // when there are more tests than source files: first gauge how much more tests  there are than source files
     // then compute "penalty" for having more tests
     let penaltyRatio = (numTests - numSrc) / numSrc;
     if (penaltyRatio > 1) {
@@ -236,10 +262,11 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
 
   // final coverage score calculation
   let coverageScore = 0;
-  if(ciCdScore === 0.8) { // if trhere are CI/CD configuration files
+  if (ciCdScore === 0.8) {
+    // if trhere are CI/CD configuration files
     coverageScore = ciCdScore + repoScore;
-  }
-  else { // use the entire (not weighted) repoScore as the coverage score
+  } else {
+    // use the entire (not weighted) repoScore as the coverage score
     coverageScore = repoScore / 0.2;
   }
   return coverageScore;

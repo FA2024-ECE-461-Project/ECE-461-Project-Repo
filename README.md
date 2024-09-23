@@ -1,5 +1,5 @@
 # ECE-461-Project-Repo
-A Command Line Interface (CLI) tool designed to evaluate and score npm packages based on various quality and popularity metrics. This project automates the analysis of npm packages, providing insights for developers looking to assess the reliability of open-source software.
+This is a command-line interface (CLI) that reads the provided URL file to trigger API calls and fetch data from GitHub. Various metrics, such as bus factor, correctness, license compatibility, ramp-up time, responsiveness, and a final net score, are calculated based on the gathered information wherein each metric and netscore are a value from 0 to 1, inclusive of both. For correctness and ramp-up time, the system uses the isomorphic-git library to clone the repository and analyze its contents. The net score metric aggregates the results of all other metrics and includes the latency of each, including cloning latency. To optimize performance, the calculation of metrics is done in parallel by parts to save time, however, API calls are rate-limited using the bottleneck package to have a gap of 0.75s between each request. A logging mechanism is implemented with different log levels (info, debug and error) to track system operations. Lastly, a Jest-based test suite is developed, which includes mock tests to ensure the functionality of each component in the system.
 
 ## ECE 461 Team Project Repository
 This repository contains the code and resources for our ECE 461 team project.
@@ -35,3 +35,13 @@ To start the main program and analyze npm packages based on URLs provided in a f
 ```
 
 Here, URL_FILE refers to a text file (such as url.txt) that contains a list of npm package URLs or names. The program will process each package, compute its score, and provide a detailed report on the quality of each package.
+
+### Errors and Error Handling
+
+The actions in the following list will lead to the invocation of console.error('...') and process termination with a return code of 1:
+- Invalid or missing LOG_FILE path
+- Invalid URL file path
+- Invalid or missing GitHub Token
+- Invalid URL
+- Exceeding GitHub rate limit
+- Any other HTTP response status codes from 400 to 600, inclusive, when fetching GitHub data

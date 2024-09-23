@@ -23,7 +23,7 @@ interface RepoInfo {
 */
 export function checkUrlType(url: string): UrlType {
   log.info(`Checking URL type for: ${url}`);
-  
+
   const githubPattern = /^(https?:\/\/)?(www\.)?github\.com\/[^\/]+\/[^\/]+/;
   const npmPattern = /^(https?:\/\/)?(www\.)?npmjs\.com\/package\/[^\/]+/;
 
@@ -57,7 +57,7 @@ export function convertSshToHttps(sshUrl: string): string {
       .replace(/^ssh:\/\/git@github.com\//, "https://github.com/")
       .replace(/^git@github.com:/, "https://github.com/")
       .replace(/\.git$/, "");
-    
+
     log.info(`Converted SSH URL to HTTPS: ${httpsUrl}`);
     return httpsUrl;
   }

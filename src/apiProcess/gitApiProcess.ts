@@ -79,7 +79,7 @@ const licenseMap: { [key: string]: string } = {
   @params: repo: string - the name of the repository
   @returns: Promise<RepoDetails> - the repository details
 */
-export async function getGithubInfo(
+async function getGithubInfo(
   owner: string,
   repo: string,
 ): Promise<RepoDetails> {
@@ -107,16 +107,16 @@ export async function getGithubInfo(
   const currentDate = new Date();
   const twelveMonthsAgo = new Date();
   twelveMonthsAgo.setMonth(currentDate.getMonth() - 12);
-  const startDate =
-    repoData.createdAt > twelveMonthsAgo ? repoData.createdAt : twelveMonthsAgo;
+  const startDate = twelveMonthsAgo;
 
   log.info(`In getGithubInfo, fetching latest commits for ${owner}/${repo}`);
   // Fetch latest commits (up to 500 from the start date)
   let allCommits: any[] = [];
   for (let page = 1; page <= 5; page++) {
-    const commits = await limiter.schedule(() =>
-      _fetchLatestCommits(owner, repo, startDate, 100, page),
-    );
+    const commits =
+      (await limiter.schedule(() =>
+        _fetchLatestCommits(owner, repo, startDate, 100, page),
+      )) || [];
     allCommits = allCommits.concat(commits);
     if (
       commits.length < 100 ||
@@ -131,9 +131,10 @@ export async function getGithubInfo(
   // Fetch latest issues (up to 500 or from the start date)
   let allIssues: any[] = [];
   for (let page = 1; page <= 5; page++) {
-    const issues = await limiter.schedule(() =>
-      _fetchLatestIssues(owner, repo, 100, page, startDate),
-    );
+    const issues =
+      (await limiter.schedule(() =>
+        _fetchLatestIssues(owner, repo, 100, page, startDate),
+      )) || [];
     allIssues = allIssues.concat(issues);
     if (
       issues.length < 100 ||
@@ -304,7 +305,7 @@ async function _fetchLatestIssues(
   repo: string,
   perPage: number,
   page: number,
-  startDate: string,
+  startDate: Date,
 ): Promise<any> {
   try {
     const issuesResponse = await axios.get(
@@ -421,10 +422,18 @@ function _handleError(error: any, context: string): void {
     if (error.response) {
       const status = error.response.status;
       if (
-        (status === 403 || status === 429) &&
-        error.response.data.message.includes("rate limit exceeded")
+        (status == 403 || status == 429) &&
+        error.response.headers["x-ratelimit-remaining"] === "0"
       ) {
-        console.error("Error: Rate limit exceeded. Please try again later.");
+        console.error(`Error: Rate limit exceeded.`);
+      } else if (status == 401) {
+        console.error("Error: Unauthorized. Invalid or missing GitHub Token.");
+      } else if (status == 403) {
+        console.error(
+          "Error: Forbidden. You do not have permission to access this resource.",
+        );
+      } else if (status == 404) {
+        console.error("Error: Not Found. Invalid URL.");
       } else if (status >= 400 && status < 500) {
         console.error(`Client error: ${status} - ${error.response.statusText}`);
       } else if (status >= 500 && status < 600) {
@@ -445,6 +454,16 @@ function _handleError(error: any, context: string): void {
   }
 
   console.error("Context:", context);
-  log.info(`Exiting errorhandling...`);
+  log.info(`Exiting Error Handling...`);
   process.exit(1); // Exit the process with a return code 1
 }
+
+export {
+  getGithubInfo,
+  _fetchRepoData,
+  _fetchLicense,
+  _fetchLatestCommits,
+  _fetchLatestIssues,
+  _fetchContributors,
+  _handleError,
+};

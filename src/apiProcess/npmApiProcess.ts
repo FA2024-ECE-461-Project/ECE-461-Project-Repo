@@ -27,7 +27,7 @@ export async function getGitHubRepoFromNpmUrl(
 ): Promise<string> {
   try {
     log.info(`Fetching GitHub repository URL for package: ${packageName}`);
-    
+
     // Fetch package metadata from npm registry
     const url = `${NPM_API_URL}/${packageName}`;
     const response = await axios.get(url);
@@ -37,17 +37,23 @@ export async function getGitHubRepoFromNpmUrl(
     const repositoryUrl = response.data.repository?.url;
 
     if (repositoryUrl) {
-      const sanitizedUrl = repositoryUrl.replace("git+", "").replace(".git", "");
-      log.info(`GitHub repository URL found for ${packageName}: ${sanitizedUrl}`);
+      const sanitizedUrl = repositoryUrl
+        .replace("git+", "")
+        .replace(".git", "");
+      log.info(
+        `GitHub repository URL found for ${packageName}: ${sanitizedUrl}`,
+      );
       return sanitizedUrl;
     } else {
-      console.error(`GitHub repository URL not found in package metadata for ${packageName}`);
+      console.error(
+        `GitHub repository URL not found in package metadata for ${packageName}`,
+      );
       process.exit(1);
     }
   } catch (error) {
     console.error(
       `getGitHubRepoFromNpmUrl: Failed to fetch data for ${packageName}:`,
-      error
+      error,
     );
     process.exit(1);
   }
@@ -66,7 +72,7 @@ export async function getNpmPackageInfo(
 ): Promise<packageInfo> {
   try {
     log.info(`Fetching npm package info for ${packageName}`);
-    
+
     // Fetch package metadata from npm registry
     const url = `${NPM_API_URL}/${packageName}`;
     const response = await axios.get(url);
@@ -92,10 +98,13 @@ export async function getNpmPackageInfo(
 
     log.info(`Successfully fetched package info for ${packageName}`);
     log.debug(`Package Info: ${JSON.stringify(packageInfo)}`);
-    
+
     return packageInfo;
   } catch (error) {
-    log.error(`getNpmPackageInfo: Failed to fetch data for ${packageName}:`, error);
+    log.error(
+      `getNpmPackageInfo: Failed to fetch data for ${packageName}:`,
+      error,
+    );
     return {
       license: "No license",
       description: "No description",

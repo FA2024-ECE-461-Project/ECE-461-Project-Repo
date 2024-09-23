@@ -13,7 +13,7 @@ export async function readUrlsFromFile(filePath: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
     // Get the absolute path to the file
     const absolutePath = path.resolve(filePath);
-    
+
     // Read the file asynchronously
     fs.readFile(absolutePath, "utf8", (err, data) => {
       if (err) {

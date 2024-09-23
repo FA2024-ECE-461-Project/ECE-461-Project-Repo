@@ -3,7 +3,6 @@ dotenv.config();
 import { RepoDetails } from "../apiProcess/gitApiProcess";
 import { log } from "../logger";
 
-
 /*
   Function Name: calculateBusFactor
   Description: This function calculates the bus factor of a repository
