@@ -1,0 +1,31 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  
+jobs:   # run tests specified in test/
+  test:
+    runs-on: ubuntu-latest  # specify running on the ubuntu OS provided by GitHub on their server
+    steps:  
+      # checkout@v3: checkout our repo for tests and src, v3 for latest version 
+      - uses: actions/checkout@v3 
+
+      - name: Install Node.js # install node.js on the ubuntu OS provided by GitHub
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.17.1' # specify the Node.js version: same version as eceprog
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests # display test results in the Actions tab
+        run: npm test 
+
+      # shows coverage in Actions tab: make use of run script and printTestResults.ts
+      # TODO: work this out a little later
+      # - name: display coverage 
+      #   run: ./run test 
+        
