@@ -7,5 +7,5 @@ node_modules
 #ignore coverage/ generated after Jest
 coverage
 
-#ignor .env
-.env
+#ignore .vscode
+.vscode
