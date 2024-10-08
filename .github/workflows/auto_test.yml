@@ -25,6 +25,7 @@ jobs:   # run tests specified in test/
         run: npm test 
 
       # shows coverage in Actions tab: make use of run script and printTestResults.ts
-      - name: display coverage 
-        run: ./run test 
+      # TODO: work this out a little later
+      # - name: display coverage 
+      #   run: ./run test 
         
