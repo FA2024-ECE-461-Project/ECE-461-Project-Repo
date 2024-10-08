@@ -11,9 +11,14 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v3
-
-            - name: Install dependencies
+            # Install dependencies
+            - name: Install Dependencies
               run: npm install
 
-            - name: Lint check
-              run: npm run lint
+            # Run ESLint: this needs a eslint.config.(js|mjs|cjs) file
+            - name: Run ESLint
+              run: npx eslint . --ext .js,.jsx,.ts,.tsx
+
+            # Run Prettier
+            - name: Run Prettier Check
+              run: npx prettier --check .
