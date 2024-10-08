@@ -1,0 +1,19 @@
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+jobs:
+    lint-check:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Lint check
+              run: npm run lint

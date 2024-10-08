@@ -22,6 +22,7 @@
     "@types/sinon": "^17.0.3",
     "jest": "^29.7.0",
     "memfs": "^4.12.0",
+    "prettier": "^3.3.3",
     "ts-jest": "^29.2.5",
     "tsx": "^4.19.0"
   },
@@ -33,7 +34,6 @@
     "exec": "^0.2.1",
     "fs": "^0.0.1-security",
     "isomorphic-git": "^1.27.1",
-    "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "tslog": "^4.9.3",
     "typescript": "^5.5.4"
