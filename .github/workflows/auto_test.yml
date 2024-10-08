@@ -21,9 +21,16 @@ jobs:   # run tests specified in test/
       - name: Install dependencies
         run: npm install
         
-      - name: Set LOG_FILE environment variable on github
+      - name: Setup environment
         # $GITHUB_ENV: .env file for github actions, this step configures LOG_FILE env variable
-        run: echo "LOG_FILE=coverage.txt" >> $GITHUB_ENV
+        # second step sets up GITHUB_TOKEN env variable, 
+        # secrets.GITHUB_TOKEN accesses the automatically generated GitHub token.
+        run: |
+            echo "LOG_FILE=coverage.txt" >> $GITHUB_ENV
+            touch coverage.txt  
+            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV 
+
+
 
       - name: Run tests # display test results in the Actions tab
         run: npm test 
