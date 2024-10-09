@@ -17,7 +17,7 @@ jobs:
 
             # Run ESLint: this needs a eslint.config.(js|mjs|cjs) file
             - name: Run ESLint
-              run: npx eslint . --ext .js,.jsx,.ts,.tsx
+              run: npx eslint -c eslint.config.js
 
             # Run Prettier
             - name: Run Prettier Check
