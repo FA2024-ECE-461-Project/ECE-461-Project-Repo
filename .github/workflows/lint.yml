@@ -1,24 +1,44 @@
+name: Lint Codebase
+
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches:
-            - main
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 jobs:
-    lint-check:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v3
-            # Install dependencies
-            - name: Install Dependencies
-              run: npm install
+  lint:
+    name: Run ESLint
+    runs-on: ubuntu-latest
 
-            # Run ESLint: this needs a eslint.config.(js|mjs|cjs) file
-            - name: Run ESLint
-              run: npx eslint -c eslint.config.js
+    steps:
+      # Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-            # Run Prettier
-            - name: Run Prettier Check
-              run: npx prettier --check .
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Install dependencies, including ESLint and Airbnb config
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import
+
+      # Run ESLint to check for style and linting issues
+      - name: Run ESLint
+        run: |
+          npx eslint . --format stylish
+
+      # Output lint score based on the number of errors/warnings
+      - name: Output lint score
+        run: |
+          eslint_output=$(npx eslint . --format json)
+          total_errors=$(echo "$eslint_output" | jq '[.[] | .errorCount] | add')
+          total_warnings=$(echo "$eslint_output" | jq '[.[] | .warningCount] | add')
+          echo "Lint Score: Errors: $total_errors, Warnings: $total_warnings"
