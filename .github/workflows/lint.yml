@@ -36,9 +36,3 @@ jobs:
           npx eslint . --format stylish
 
       # Output lint score based on the number of errors/warnings
-      - name: Output lint score
-        run: |
-          eslint_output=$(npx eslint . --format json)
-          total_errors=$(echo "$eslint_output" | jq '[.[] | .errorCount] | add')
-          total_warnings=$(echo "$eslint_output" | jq '[.[] | .warningCount] | add')
-          echo "Lint Score: Errors: $total_errors, Warnings: $total_warnings"
