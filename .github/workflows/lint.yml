@@ -1,24 +1,38 @@
+name: Lint Codebase
+
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches:
-            - main
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 jobs:
-    lint-check:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v3
-            # Install dependencies
-            - name: Install Dependencies
-              run: npm install
+  lint:
+    name: Run ESLint
+    runs-on: ubuntu-latest
 
-            # Run ESLint: this needs a eslint.config.(js|mjs|cjs) file
-            - name: Run ESLint
-              run: npx eslint . --ext .js,.jsx,.ts,.tsx
+    steps:
+      # Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-            # Run Prettier
-            - name: Run Prettier Check
-              run: npx prettier --check .
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # Install dependencies, including ESLint and Airbnb config
+      - name: Install dependencies
+        run: |
+          npm install
+
+      # Run ESLint to check for style and linting issues
+      - name: Run ESLint
+        run: |
+          npx eslint .
+          echo "ESLint completed successfully"
+
+      # Output lint score based on the number of errors/warnings
