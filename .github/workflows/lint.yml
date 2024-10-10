@@ -22,17 +22,17 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
       # Install dependencies, including ESLint and Airbnb config
       - name: Install dependencies
         run: |
           npm install
-          npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import
 
       # Run ESLint to check for style and linting issues
       - name: Run ESLint
         run: |
-          npx eslint . --format stylish
+          npx eslint .
+          echo "ESLint completed successfully"
 
       # Output lint score based on the number of errors/warnings
