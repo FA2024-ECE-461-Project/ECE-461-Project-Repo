@@ -33,7 +33,7 @@ export async function cli() {
     const results = [];
 
     // Process each URL from the file
-    for (let url of urls) {
+    for (const url of urls) {
       log.info(`Processing URL: ${url}`);
 
       // Determine the type of the URL (GitHub, npm, or invalid)

@@ -24,8 +24,8 @@ interface RepoInfo {
 export function checkUrlType(url: string): UrlType {
   log.info(`Checking URL type for: ${url}`);
 
-  const githubPattern = /^(https?:\/\/)?(www\.)?github\.com\/[^\/]+\/[^\/]+/;
-  const npmPattern = /^(https?:\/\/)?(www\.)?npmjs\.com\/package\/[^\/]+/;
+  const githubPattern = /^(https?:\/\/)?(www\.)?github\.com\/[^/]+\/[^/]+/;
+  const npmPattern = /^(https?:\/\/)?(www\.)?npmjs\.com\/package\/[^/]+/;
 
   if (githubPattern.test(url)) {
     log.info(`URL identified as GitHub URL.`);
@@ -77,7 +77,7 @@ export function convertSshToHttps(sshUrl: string): string {
 export function extractOwnerAndRepo(gitHubUrl: string): RepoInfo {
   log.info(`Extracting owner and repo from GitHub URL: ${gitHubUrl}`);
 
-  const regex = /github\.com\/([^\/]+)\/([^\/]+)/;
+  const regex = /github\.com\/([^/]+)\/([^\/]+)/;
   const match = gitHubUrl.match(regex);
 
   if (!match || match.length < 3) {

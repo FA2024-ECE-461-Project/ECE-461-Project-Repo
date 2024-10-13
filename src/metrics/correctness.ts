@@ -220,7 +220,7 @@ async function _getCIFilesScore(clonedPath: string): Promise<number> {
  * */
 async function _getCoverageScore(clonedPath: string): Promise<number> {
   // Check for CI/CD configuration files
-  let ciCdScore = await _getCIFilesScore(clonedPath); // should get 0 or 0.8
+  const ciCdScore = await _getCIFilesScore(clonedPath); // should get 0 or 0.8
   log.info(`CI/CD configuration file score: ${ciCdScore}`);
   // find test and src folders
   const [testFolderPath, srcFolderPath] = await Promise.all([
@@ -249,7 +249,7 @@ async function _getCoverageScore(clonedPath: string): Promise<number> {
   if (numTests > numSrc) {
     // when there are more tests than source files: first gauge how much more tests  there are than source files
     // then compute "penalty" for having more tests
-    let penaltyRatio = (numTests - numSrc) / numSrc;
+    const penaltyRatio = (numTests - numSrc) / numSrc;
     if (penaltyRatio > 1) {
       //unreasonably many tests compared to source files
       repoScore = 0;
