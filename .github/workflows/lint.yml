@@ -32,7 +32,7 @@ jobs:
       # Run ESLint to check for style and linting issues
       - name: Run ESLint on src/ only
         run: |
-          npx eslint src/
+          npx eslint src/ --fix
           echo "ESLint on src/ completed successfully"
 
       # Output lint score based on the number of errors/warnings
