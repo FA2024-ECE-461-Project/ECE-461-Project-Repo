@@ -53,13 +53,13 @@ export async function GetNetScore(
       return null;
     }
 
-    let api_time = (new Date().getTime() - start) / 1000;
+    const api_time = (new Date().getTime() - start) / 1000;
     const repoUrl = `https://github.com/${owner}/${repo}.git`;
     log.info(`Cloning repository from URL: ${repoUrl}`);
 
     const start_clone = new Date().getTime();
     const clonedPath = await cloneRepo(repoUrl);
-    let clone_time = (new Date().getTime() - start_clone) / 1000;
+    const clone_time = (new Date().getTime() - start_clone) / 1000;
     log.info(`Repository cloned to ${clonedPath}. Clone time: ${clone_time}s`);
     log.info(`Calculating repository metrics...`);
     const [rampUpTime, responsiveness] = await Promise.all([
@@ -89,7 +89,7 @@ export async function GetNetScore(
       0.3 * responsiveness.value +
       0.2 * rampUpTime.value;
 
-    let net_time = (new Date().getTime() - start) / 1000;
+    const net_time = (new Date().getTime() - start) / 1000;
     log.info(
       `NetScore calculated successfully for ${url}. Time taken: ${net_time}s`,
     );

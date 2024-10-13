@@ -59,7 +59,7 @@ function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }
 
-async function removeRepo(repoPath: string): Promise<Boolean> {
+async function removeRepo(repoPath: string): Promise<boolean> {
   // Step 1: Normalize the input path
   const normalizedRepoPath = path.normalize(repoPath);
   // Step 2: Resolve the absolute path
