@@ -30,7 +30,7 @@ jobs:
           npm install
 
       # Run ESLint to check for style and linting issues
-      - name: Run ESLint
+      - name: Run ESLint on src/ only
         run: |
           npx eslint .
           echo "ESLint completed successfully"
