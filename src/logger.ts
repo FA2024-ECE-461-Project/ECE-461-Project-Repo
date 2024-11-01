@@ -36,6 +36,7 @@ checkLogFilePath();
 export const log = new Logger({
   name: "Logger",
   minLevel: 7,
+  type: "hidden",  //edit to supress the log output.
 });
 
 // Clear the log file at the beginning of the script
