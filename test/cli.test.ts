@@ -7,7 +7,13 @@ import { log } from "../src/logger";
 jest.mock("../src/utils/urlUtils");
 jest.mock("../src/utils/fileUtils");
 jest.mock("../src/metrics/netScore");
-jest.mock("../src/logger");
+jest.mock("../src/logger", () => ({
+  log: {
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
+  },
+}));
 
 describe("cli", () => {
   const originalArgv = process.argv;
@@ -89,7 +95,7 @@ describe("cli", () => {
       "Processing URL: https://github.com/user/repo",
     );
     expect(console.log).toHaveBeenCalledWith(
-      JSON.stringify(mockMetrics, null, 2),
+      JSON.stringify(mockMetrics, null, 0),
     );
   });
 });

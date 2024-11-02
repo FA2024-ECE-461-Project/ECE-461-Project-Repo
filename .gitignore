@@ -9,3 +9,5 @@ coverage
 
 #ignore .vscode
 .vscode
+
+logs.txt
